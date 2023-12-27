@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "mealhow-core-api"
+version = "0.1.0"
+description = "A FastAPI server for MealHow application"
+authors = ["Vitalii Vinnychenko <vitalii@mealhow.ai>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<4"
+fastapi = {extras = ["all"], version = "^0.87.0"}
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+auth0-python = "^3.24.0"
+pydantic = "^1.10"
+secure = "^0.3.0"
+elastic-apm = "^6.19.0"
+pre-commit = "^3.6.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.0"
+pylint = "^2.15.9"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

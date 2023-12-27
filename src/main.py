@@ -1,0 +1,144 @@
+from typing import Callable, Literal
+
+import secure
+from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
+from fastapi import FastAPI
+from fastapi import Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.routing import APIRoute
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from src.core.config import get_settings, Settings
+from src.core.http_client import HttpClient
+from src.core.logger import get_logger
+from src.external_api.cloud_storage import CloudStorage
+from src.routes import token
+from src.routes import user
+
+gcloud_storage_session = CloudStorage()
+settings: Settings = get_settings()
+logger = get_logger(__name__)
+
+
+def custom_generate_unique_id(route: APIRoute) -> str:
+    try:
+        return f"{route.tags[0]}-{route.name}"
+    except IndexError:
+        return route.name
+
+
+http_client = HttpClient()
+app = FastAPI(root_path=settings.root_path, generate_unique_id_function=custom_generate_unique_id)
+
+csp = secure.ContentSecurityPolicy().default_src("'self'").frame_ancestors("'none'")
+hsts = secure.StrictTransportSecurity().max_age(31536000).include_subdomains()
+referrer = secure.ReferrerPolicy().no_referrer()
+cache_value = secure.CacheControl().no_cache().no_store().max_age(0).must_revalidate()
+x_frame_options = secure.XFrameOptions().deny()
+
+secure_headers = secure.Secure(
+    csp=csp,
+    hsts=hsts,
+    referrer=referrer,
+    cache=cache_value,
+    xfo=x_frame_options,
+)
+
+apm = make_apm_client(
+    {
+        "SERVICE_NAME": settings.app_name,
+        "SERVER_URL": settings.ELASTIC_APM_SERVER_URL,
+        "ENABLED": settings.ELASTIC_APM_ENABLED,
+        "LOG_LEVEL": settings.ELASTIC_APM_LOG_LEVEL,
+        "ENVIRONMENT": settings.ELASTIC_APM_ENVIRONMENT,
+        "DEBUG": settings.ELASTIC_APM_DEBUG,
+        "TRANSACTIONS_IGNORE_PATTERNS": [
+            "/status",
+            "POST /programs/[0-9]+/[0-9a-zA-Z-]+/(logo_blob|signup_vertical_banner_blob|login_image_blob)",
+            # program blob create endpoint
+        ],
+        "CAPTURE_BODY": settings.ELASTIC_APM_CAPTURE_BODY,
+    }
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.client_origin_urls.split(","),
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
+    max_age=86400,
+)
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    http_client.start()
+    gcloud_storage_session.initialise(http_client())
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    await http_client.stop()
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc):
+    message = str(exc.detail)
+
+    return JSONResponse({"message": message}, status_code=exc.status_code)
+
+
+@app.middleware("http")
+async def set_secure_headers(request, call_next):
+    response = await call_next(request)
+    secure_headers.framework.fastapi(response)
+    return response
+
+
+@app.middleware("http")
+async def google_cloud_middleware(request: Request, call_next: Callable) -> Response:
+    request.state.gcloud_storage_client = gcloud_storage_session
+    request.state.gcloud_session = http_client
+    return await call_next(request)
+
+# Elastic APM instrumentation needs to be added after all the BaseHTTPMiddlewares to mitigate the mutated
+# context objects in Starlette
+# Caveat: APM instrumentation will lose the span data of the upward middlewares in the stack
+app.add_middleware(ElasticAPM, client=apm)
+
+
+@app.get("/status", status_code=status.HTTP_200_OK, operation_id="status_200")
+@app.get("/status_401", status_code=status.HTTP_200_OK, operation_id="status_401")
+async def get_status(request: Request) -> dict[str, Literal[True]]:
+    return {"healthy": True}
+
+
+@app.get(
+    "/error",
+    status_code=status.HTTP_200_OK,
+    description="""
+    This endpoint is for generating 500s to be read by apm.
+    All it does it return errors"
+    """,
+)
+async def get_error() -> None:
+    raise Exception
+
+
+app.include_router(
+    token.router,
+    prefix="/token",
+    tags=["Token"],
+)
+app.include_router(
+    user.router,
+    prefix="/user",
+    tags=["Users"],
+)
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="localhost", port=8000)  # nosec B104
