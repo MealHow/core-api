@@ -103,19 +103,15 @@ async def http_exception_handler(request: Request, exc: Any) -> JSONResponse:
 
 
 @app.middleware("http")
-async def set_secure_headers(request: Request, call_next: Callable) -> Response | JSONResponse:
+async def headers_validation_middleware(request: Request, call_next: Callable) -> Response | JSONResponse:
     if request.url.path in {
         "/docs",
         "/status",
         "/error",
         "/openapi.json",
-    }:
+    } or request.url.path.startswith(f"{settings.API_V1_PREFIX}/auth"):
         return await call_next(request)
 
-    if request.url.path.startswith(f"{settings.API_V1_PREFIX}/auth"):
-        response = await call_next(request)
-        secure_headers.framework.fastapi(response)
-        return response
     try:
         jwt_access_token = get_bearer_token(request)
     except (BadCredentialsException, RequiresAuthenticationException) as e:
@@ -145,7 +141,21 @@ async def set_secure_headers(request: Request, call_next: Callable) -> Response 
     request.state.access_token = jwt_access_token
     request.state.user_id = payload["sub"]
 
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def set_secure_headers(request: Request, call_next: Callable) -> Response:
     response = await call_next(request)
+
+    if request.url.path in {
+        "/docs",
+        "/status",
+        "/error",
+        "/openapi.json",
+    }:
+        return response
+
     secure_headers.framework.fastapi(response)
     return response
 
