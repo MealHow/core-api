@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     ELASTIC_APM_DEBUG: bool = False
     ELASTIC_APM_CAPTURE_BODY: str = "all"
 
-    # AUTH0 configuration    
+    # AUTH0 configuration
     AUTH0_DOMAIN: str
     AUTH0_ALGORITHMS: str = "RS256"
     AUTH0_DEFAULT_DB_CONNECTION: str

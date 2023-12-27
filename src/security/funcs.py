@@ -2,8 +2,7 @@ from fastapi import Depends
 from fastapi.security import SecurityScopes
 
 from src.security.oauth import oauth2_scheme
-from src.security.token_tools import AccessToken
-from src.security.token_tools import TokenTools, CREDENTIALS_EXCEPTION
+from src.security.token_tools import CREDENTIALS_EXCEPTION, AccessToken, TokenTools
 
 
 def token_tools_factory(token=Depends(oauth2_scheme)) -> TokenTools:
@@ -11,7 +10,7 @@ def token_tools_factory(token=Depends(oauth2_scheme)) -> TokenTools:
 
 
 def get_verified_token(
-        token_tools: TokenTools = Depends(token_tools_factory),
+    token_tools: TokenTools = Depends(token_tools_factory),
 ) -> AccessToken:
     return token_tools.verified_claim()
 

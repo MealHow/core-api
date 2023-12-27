@@ -2,19 +2,17 @@ from typing import Callable, Literal
 
 import secure
 from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
-from fastapi import FastAPI
-from fastapi import Request, status
+from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.core.config import get_settings, Settings
+from src.core.config import Settings, get_settings
 from src.core.http_client import HttpClient
 from src.core.logger import get_logger
 from src.external_api.cloud_storage import CloudStorage
-from src.routes import token
-from src.routes import user
+from src.routes import token, user
 
 gcloud_storage_session = CloudStorage()
 settings: Settings = get_settings()
@@ -101,6 +99,7 @@ async def google_cloud_middleware(request: Request, call_next: Callable) -> Resp
     request.state.gcloud_storage_client = gcloud_storage_session
     request.state.gcloud_session = http_client
     return await call_next(request)
+
 
 # Elastic APM instrumentation needs to be added after all the BaseHTTPMiddlewares to mitigate the mutated
 # context objects in Starlette

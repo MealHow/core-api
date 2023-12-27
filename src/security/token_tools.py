@@ -2,11 +2,10 @@ import logging
 from typing import Optional
 
 import httpx
-from fastapi import HTTPException
-from fastapi import status
+from fastapi import HTTPException, status
 from fastapi.security import SecurityScopes
-from jose import JWTError
-from jose import jwt
+from jose import JWTError, jwt
+
 from src.core.config import get_settings
 from src.security.token import AccessToken
 

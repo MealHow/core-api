@@ -86,12 +86,3 @@ repos:
     exclude: (./test.*)
     args: [--config-file=pyproject.toml]
     additional_dependencies: [types-python-dateutil, types-requests, types-redis, types-PyMySQL]
-- repo: https://github.com/Riverside-Healthcare/djLint
-  rev: v1.19.16
-  hooks:
-  - id: djlint-jinja
-- repo: https://github.com/dhruvmanila/remove-print-statements
-  rev: v0.5.1    # Replace with latest tag on GitHub
-  hooks:
-  - id: remove-print-statements
-    args: [--verbose, --dry-run]     # Show all the print statements to be removed

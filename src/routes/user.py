@@ -1,12 +1,11 @@
 import typing
 
 from auth0.v3.exceptions import Auth0Error
-from fastapi import APIRouter
-from fastapi import Depends
-from fastapi import HTTPException
-from pydantic import BaseModel, AnyUrl, EmailStr
-from src.core.config import get_settings, Settings
-from src.core.dependencies import get_auth0_users_client, get_auth0_management_client, authentication, management
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import AnyUrl, BaseModel, EmailStr
+
+from src.core.config import Settings, get_settings
+from src.core.dependencies import authentication, get_auth0_management_client, get_auth0_users_client, management
 from src.security.funcs import verify_token
 
 router = APIRouter()
@@ -16,8 +15,7 @@ settings: Settings = get_settings()
 
 @router.get("/me")
 async def read_user_me(
-        access_token: str = Depends(verify_token),
-        auth0_users: authentication.Users = Depends(get_auth0_users_client)
+    access_token: str = Depends(verify_token), auth0_users: authentication.Users = Depends(get_auth0_users_client)
 ) -> dict:
     try:
         userinfo = auth0_users.userinfo(access_token=access_token)
@@ -43,8 +41,7 @@ class CreateUser(BaseModel):
 
 @router.post("/")
 async def create_new_user(
-        create_user: CreateUser,
-        auth0_mgmt_client: management.Auth0 = Depends(get_auth0_management_client)
+    create_user: CreateUser, auth0_mgmt_client: management.Auth0 = Depends(get_auth0_management_client)
 ):
     """
     Create user in auth0.
@@ -52,9 +49,7 @@ async def create_new_user(
     """
     # Create user in auth0 db
     try:
-        response = auth0_mgmt_client.users.create(
-            body=create_user.dict(exclude_none=True)
-        )
+        response = auth0_mgmt_client.users.create(body=create_user.dict(exclude_none=True))
     except Auth0Error as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
     return response
