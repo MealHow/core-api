@@ -55,8 +55,6 @@ apm = make_apm_client(
         "DEBUG": settings.ELASTIC_APM_DEBUG,
         "TRANSACTIONS_IGNORE_PATTERNS": [
             "/status",
-            "POST /programs/[0-9]+/[0-9a-zA-Z-]+/(logo_blob|signup_vertical_banner_blob|login_image_blob)",
-            # program blob create endpoint
         ],
         "CAPTURE_BODY": settings.ELASTIC_APM_CAPTURE_BODY,
     }
@@ -74,7 +72,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup() -> None:
     http_client.start()
-    gcloud_storage_session.initialise(http_client())
+    cloud_storage_session.initialise(http_client())
 
 
 @app.on_event("shutdown")
