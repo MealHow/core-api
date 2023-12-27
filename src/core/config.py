@@ -43,6 +43,7 @@ class Settings(BaseSettings):
 
     # Google Cloud
     GCLOUD_SERVICE_ACCOUNT: str = "sa.json"
+    PROJECT_ID: str
     DATASTORE_DB: str
     GCS_MEAL_IMAGES_BUCKET: str
     PUBSUB_MEAL_PLAN_EVENT_TOPIC: str

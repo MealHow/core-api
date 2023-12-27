@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
-from google.cloud import datastore
+from google.cloud import datastore, pubsub_v1
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.core.config import Settings, get_settings
@@ -28,6 +28,7 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 http_client = HttpClient()
 cloud_storage_session = CloudStorage()
+pubsub_publisher = pubsub_v1.PublisherClient()
 datastore_client = datastore.Client(database=settings.DATASTORE_DB)
 app = FastAPI(root_path=settings.root_path, generate_unique_id_function=custom_generate_unique_id)
 
@@ -104,6 +105,7 @@ async def client_middleware(request: Request, call_next: Callable) -> Response:
     request.state.gcloud_storage_client = cloud_storage_session
     request.state.datastore_client = datastore_client
     request.state.http_client_session = http_client
+    request.state.pubsub_publisher = pubsub_publisher
     return await call_next(request)
 
 
