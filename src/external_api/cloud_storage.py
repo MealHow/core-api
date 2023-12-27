@@ -10,11 +10,13 @@ class CloudStorage:
     storage: Storage = None
 
     def initialise(self, session: Session) -> None:
-        if settings.GCLOUD_SERVICE_ACCOUNT:
+        if settings.GCLOUD_SERVICE_ACCOUNT and settings.env == "local":
             self.storage = Storage(
                 service_file=settings.GCLOUD_SERVICE_ACCOUNT,
                 session=session,
             )
+        elif settings.env in ("prod", "dev"):
+            self.storage = Storage(session=session)
 
     def __call__(self) -> Storage:
         assert self.storage is not None
