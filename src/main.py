@@ -133,13 +133,13 @@ app.include_router(
 )
 app.include_router(
     meal.router,
-    prefix="/meal",
-    tags=["Meal"],
+    prefix="/meals",
+    tags=["Meals"],
 )
 app.include_router(
     meal_plan.router,
-    prefix="/meal-plan",
-    tags=["Meal plan"],
+    prefix="/meal-plans",
+    tags=["Meal plans"],
 )
 app.include_router(
     subscription.router,
@@ -148,8 +148,8 @@ app.include_router(
 )
 app.include_router(
     shopping_list.router,
-    prefix="/shopping-list",
-    tags=["Shopping list"],
+    prefix="/shopping-lists",
+    tags=["Shopping lists"],
 )
 
 if __name__ == "__main__":
