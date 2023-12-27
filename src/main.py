@@ -140,4 +140,11 @@ app.include_router(
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="localhost", port=8000)  # nosec B104
+    if __name__ == "__main__":
+        uvicorn.run(
+            app,
+            host=settings.host,
+            port=settings.port,
+            reload=settings.reload,
+            server_header=False,
+        )

@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     app_name: str = "mrv-service"
     env: str = "local"
     root_path: str = ""
+    host: str = "0.0.0.0"
+    port: int = 8000
+    reload: bool = True
     client_origin_urls: str = "http://localhost:3000,https://app.mealhow.ai"
     LOGGING_LEVEL: str = "CRITICAL"
 
