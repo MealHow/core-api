@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     AUTH0_MANAGEMENT_API_AUDIENCE: str
 
     # Google Cloud
-    GCLOUD_SERVICE_ACCOUNT: str = "sa.json"
+    GCLOUD_SERVICE_ACCOUNT: str = "../sa.json"
     PROJECT_ID: str
     DATASTORE_DB: str
     GCS_MEAL_IMAGES_BUCKET: str | None = None
@@ -64,7 +64,7 @@ class Settings(BaseSettings):
         Tell BaseSettings the env file path
         """
 
-        env_file = ".env"
+        env_file = "../.env"
 
 
 @lru_cache()
