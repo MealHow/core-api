@@ -5,7 +5,6 @@ from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
 from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.routing import APIRoute
 from google.cloud import datastore, pubsub_v1
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -13,17 +12,11 @@ from src.core.config import Settings, get_settings
 from src.core.http_client import HttpClient
 from src.core.logger import get_logger
 from src.external_api.cloud_storage import CloudStorage
+from src.helpers import custom_generate_unique_id
 from src.routes import token, user
 
 settings: Settings = get_settings()
 logger = get_logger(__name__)
-
-
-def custom_generate_unique_id(route: APIRoute) -> str:
-    try:
-        return f"{route.tags[0]}-{route.name}"
-    except IndexError:
-        return route.name
 
 
 http_client = HttpClient()

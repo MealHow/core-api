@@ -45,15 +45,15 @@ class Settings(BaseSettings):
     GCLOUD_SERVICE_ACCOUNT: str = "sa.json"
     PROJECT_ID: str
     DATASTORE_DB: str
-    GCS_MEAL_IMAGES_BUCKET: str
-    PUBSUB_MEAL_PLAN_EVENT_TOPIC: str
+    GCS_MEAL_IMAGES_BUCKET: str | None = None
+    PUBSUB_MEAL_PLAN_EVENT_TOPIC: str | None = None
 
     # OpenAI
     OPENAI_API_KEY: str
     OPENAI_GPT_MODEL_VERSION: str
 
     # Mailgun
-    MAILGUN_API_KEY: str
+    MAILGUN_API_KEY: str | None = None
     MAILGUN_BASE_API_URL: str = "https://api.mailgun.net/v3/newsletter.mealhow.ai"
 
     # Stripe

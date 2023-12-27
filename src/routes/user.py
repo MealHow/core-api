@@ -1,9 +1,9 @@
 from auth0.v3.exceptions import Auth0Error
 from fastapi import APIRouter, Depends, HTTPException
 
-from models.user import CreateUser
 from src.core.config import Settings, get_settings
 from src.core.dependencies import authentication, get_auth0_management_client, get_auth0_users_client, management
+from src.models.user import CreateUser
 from src.security.funcs import verify_token
 
 router = APIRouter()
