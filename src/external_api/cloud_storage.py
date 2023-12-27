@@ -1,7 +1,7 @@
 from aiohttp import ClientSession as Session
 from gcloud.aio.storage import Storage
 
-from src.core.config import get_settings
+from core.config import get_settings
 
 settings = get_settings()
 

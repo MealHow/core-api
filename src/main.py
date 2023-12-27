@@ -1,4 +1,4 @@
-from typing import Callable, Literal
+from typing import Any, Callable, Literal
 
 import openai
 import secure
@@ -6,15 +6,15 @@ from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
 from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from google.cloud import datastore, pubsub_v1
+from google.cloud import ndb, pubsub_v1
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.core.config import Settings, get_settings
-from src.core.http_client import HttpClient
-from src.core.logger import get_logger
-from src.external_api.cloud_storage import CloudStorage
-from src.helpers import custom_generate_unique_id
-from src.routes import meal, meal_plan, shopping_list, subscription, token, user
+from core.config import get_settings, Settings
+from core.http_client import HttpClient
+from core.logger import get_logger
+from external_api.cloud_storage import CloudStorage
+from helpers import custom_generate_unique_id
+from routes import meal, meal_plan, shopping_list, subscription, token, user
 
 settings: Settings = get_settings()
 logger = get_logger(__name__)
@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 http_client = HttpClient()
 cloud_storage_session = CloudStorage()
 pubsub_publisher = pubsub_v1.PublisherClient()
-datastore_client = datastore.Client(database=settings.DATASTORE_DB)
+ndb_client = ndb.Client(project=settings.PROJECT_ID, database=settings.DATASTORE_DB)
 app = FastAPI(root_path=settings.root_path, generate_unique_id_function=custom_generate_unique_id)
 
 csp = secure.ContentSecurityPolicy().default_src("'self'").frame_ancestors("'none'")
@@ -82,14 +82,14 @@ async def shutdown() -> None:
 
 
 @app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request, exc):
+async def http_exception_handler(request: Request, exc: Any) -> JSONResponse:
     message = str(exc.detail)
 
     return JSONResponse({"message": message}, status_code=exc.status_code)
 
 
 @app.middleware("http")
-async def set_secure_headers(request, call_next):
+async def set_secure_headers(request: Request, call_next: Callable) -> Response:
     response = await call_next(request)
     secure_headers.framework.fastapi(response)
     return response
@@ -98,7 +98,7 @@ async def set_secure_headers(request, call_next):
 @app.middleware("http")
 async def client_middleware(request: Request, call_next: Callable) -> Response:
     request.state.gcloud_storage_client = cloud_storage_session
-    request.state.datastore_client = datastore_client
+    request.state.ndb_client = ndb_client
     request.state.http_client_session = http_client
     request.state.pubsub_publisher = pubsub_publisher
     return await call_next(request)

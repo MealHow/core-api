@@ -3,11 +3,11 @@ from typing import Optional
 
 import httpx
 from fastapi.security import SecurityScopes
-from jose import JWTError, jwt
+from jose import jwt, JWTError
 
-from src.core.config import get_settings
-from src.core.custom_exceptions import CredentialsException, PermissionsException
-from src.security.token import AccessToken
+from core.config import get_settings
+from core.custom_exceptions import CredentialsException, PermissionsException
+from security.token import AccessToken
 
 settings = get_settings()
 JWKS = httpx.get(f"https://{settings.AUTH0_DOMAIN}/.well-known/jwks.json").json()
@@ -16,7 +16,7 @@ JWKS = httpx.get(f"https://{settings.AUTH0_DOMAIN}/.well-known/jwks.json").json(
 class TokenTools:
     """Does all the access token authentication, authorization and parsing"""
 
-    def __init__(self, token):
+    def __init__(self, token: str) -> None:
         self.token = token
         self.settings = get_settings()
         self.jwks = JWKS
@@ -26,7 +26,7 @@ class TokenTools:
         try:
             return jwt.get_unverified_header(self.token)
         except Exception as e:
-            logging.error(f"Invalid token: {self.token}")
+            logging.error("Invalid token: %s", self.token)
             raise e
 
     @property

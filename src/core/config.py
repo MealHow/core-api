@@ -68,10 +68,9 @@ class Settings(BaseSettings):
 
 
 @lru_cache()
-def get_settings(**kwargs) -> Settings:
+def get_settings(**kwargs: dict) -> Settings:
     """
     Get settings. ready for FastAPI's Depends.
     lru_cache - cache the Settings object per arguments given.
     """
-    settings = Settings(**kwargs)
-    return settings
+    return Settings(**kwargs)

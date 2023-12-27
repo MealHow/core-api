@@ -1,9 +1,9 @@
 from auth0.v3.exceptions import Auth0Error
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.security import OAuth2PasswordRequestForm
 
-from src.core.config import Settings, get_settings
-from src.core.dependencies import authentication, get_auth0_token_client
+from core.config import get_settings, Settings
+from core.dependencies import authentication, get_auth0_token_client
 
 router = APIRouter()
 
@@ -14,7 +14,7 @@ settings: Settings = get_settings()
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     auth0_token: authentication.GetToken = Depends(get_auth0_token_client),
-):
+) -> Response:
     """
     Get access token from auth0 /oauth/token endpoint.
     """
@@ -38,7 +38,7 @@ async def login_for_access_token(
 async def login_callback(
     code: str,
     auth0_token: authentication.GetToken = Depends(get_auth0_token_client),
-):
+) -> Response:
     try:
         response = auth0_token.authorization_code(
             grant_type="authorization_code",

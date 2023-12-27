@@ -1,6 +1,6 @@
 from auth0.v3 import authentication, management
 
-from src.core.config import Settings, get_settings
+from core.config import get_settings, Settings
 
 
 def get_auth0_token_client() -> authentication.GetToken:
@@ -32,6 +32,4 @@ def get_auth0_management_client() -> management.Auth0:
     )
     mgmt_api_token = response["access_token"]
 
-    auth0 = management.Auth0(settings.AUTH0_DOMAIN, mgmt_api_token)
-
-    return auth0
+    return management.Auth0(settings.AUTH0_DOMAIN, mgmt_api_token)

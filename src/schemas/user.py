@@ -2,7 +2,7 @@ import typing
 
 from pydantic import AnyUrl, BaseModel, EmailStr
 
-from src.core.config import Settings, get_settings
+from core.config import get_settings, Settings
 
 settings: Settings = get_settings()
 

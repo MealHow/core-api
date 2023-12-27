@@ -2,12 +2,12 @@ from fastapi import HTTPException, status
 
 
 class RequiresAuthenticationException(HTTPException):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail="Requires authentication")
 
 
 class CredentialsException(HTTPException):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -16,7 +16,7 @@ class CredentialsException(HTTPException):
 
 
 class PermissionsException(HTTPException):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",

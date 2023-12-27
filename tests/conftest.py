@@ -1,18 +1,18 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from src.core.config import get_settings
-from src.main import app
+from core.config import get_settings
+from main import app
 
 
 @pytest.fixture(scope="session")
-def client():
+def client() -> TestClient:
     with TestClient(app) as test_client:
         yield test_client
 
 
 @pytest.fixture(scope="session")
-def headers_with_authorization(client: TestClient):
+def headers_with_authorization(client: TestClient) -> dict[str, str]:
     settings = get_settings()
     response = client.post(
         "/token",
@@ -24,7 +24,7 @@ def headers_with_authorization(client: TestClient):
 
 
 @pytest.fixture(scope="session")
-def test_client_auth(headers_with_authorization: dict):
+def test_client_auth(headers_with_authorization: dict) -> TestClient:
     with TestClient(app) as test_client:
         test_client.headers = headers_with_authorization
         yield test_client
