@@ -38,7 +38,7 @@ python = ">=3.9,<4"
 fastapi = "0.108.0"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 auth0-python = "3.24.0"
-pydantic = "2.5.3"
+pydantic = {extras = ["email"], version = "^2.5.3"}
 secure = "^0.3.0"
 elastic-apm = "^6.19.0"
 pre-commit = "^3.6.0"
@@ -49,6 +49,9 @@ openai = "0.28.1"
 google-cloud-ndb = "^2.2.2"
 httpx = "^0.26.0"
 isort = "^5.13.2"
+uvicorn = "^0.25.0"
+pydantic-settings = "^2.1.0"
+python-multipart = "^0.0.6"
 
 
 [tool.poetry.group.dev.dependencies]
