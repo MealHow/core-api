@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     CLIENT_ORIGIN_URLS: str = "http://localhost:3000,https://app.mealhow.ai"
     API_V1_PREFIX: str = "/api/v1"
     LOGGING_LEVEL: str = "CRITICAL"
+    WHITELISTED_PATHS: set[str] = {
+        "/docs",
+        "/status",
+        "/error",
+        "/openapi.json",
+    }
 
     # Elastic APM configuration
     ELASTIC_APM_SERVER_URL: str = ""

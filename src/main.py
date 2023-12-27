@@ -104,12 +104,7 @@ async def http_exception_handler(request: Request, exc: Any) -> JSONResponse:
 
 @app.middleware("http")
 async def headers_validation_middleware(request: Request, call_next: Callable) -> Response | JSONResponse:
-    if request.url.path in {
-        "/docs",
-        "/status",
-        "/error",
-        "/openapi.json",
-    } or request.url.path.startswith(f"{settings.API_V1_PREFIX}/auth"):
+    if request.url.path in settings.WHITELISTED_PATHS or request.url.path.startswith(f"{settings.API_V1_PREFIX}/auth"):
         return await call_next(request)
 
     try:
@@ -148,12 +143,7 @@ async def headers_validation_middleware(request: Request, call_next: Callable) -
 async def set_secure_headers(request: Request, call_next: Callable) -> Response:
     response = await call_next(request)
 
-    if request.url.path in {
-        "/docs",
-        "/status",
-        "/error",
-        "/openapi.json",
-    }:
+    if request.url.path in settings.WHITELISTED_PATHS:
         return response
 
     secure_headers.framework.fastapi(response)
