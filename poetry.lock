@@ -184,6 +184,19 @@ files = [
 ]
 
 [[package]]
+name = "asyncio"
+version = "3.4.3"
+description = "reference implementation of PEP 3156"
+optional = false
+python-versions = "*"
+files = [
+    {file = "asyncio-3.4.3-cp33-none-win32.whl", hash = "sha256:b62c9157d36187eca799c378e572c969f0da87cd5fc42ca372d92cdb06e7e1de"},
+    {file = "asyncio-3.4.3-cp33-none-win_amd64.whl", hash = "sha256:c46a87b48213d7464f22d9a497b9eef8c1928b68320a2fa94240f969f6fec08c"},
+    {file = "asyncio-3.4.3-py3-none-any.whl", hash = "sha256:c4d18b22701821de07bd6aea8b53d21449ec0ec5680645e5317062ea21817d2d"},
+    {file = "asyncio-3.4.3.tar.gz", hash = "sha256:83360ff8bc97980e4ff25c964c7bd3923d333d177aa4f7fb736b019f26c7cb41"},
+]
+
+[[package]]
 name = "attrs"
 version = "23.1.0"
 description = "Classes Without Boilerplate"
@@ -1519,6 +1532,26 @@ files = [
 ]
 
 [[package]]
+name = "meal-plan-generator"
+version = "0.1.2"
+description = ""
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "meal_plan_generator-0.1.2-py3-none-any.whl", hash = "sha256:83b61da125f22b8562bd3b500dd2a047c65d283df98dd67e63893de003233a8c"},
+    {file = "meal_plan_generator-0.1.2.tar.gz", hash = "sha256:f0739f32712ec8527d0d6c5b11a10ec8bbbb090385c3aef613a4fd7221199e5f"},
+]
+
+[package.dependencies]
+asyncio = "3.4.3"
+openai = "0.28.1"
+
+[package.source]
+type = "legacy"
+url = "https://us-central1-python.pkg.dev/mealhow/mealhow-meal-plan-generator/simple"
+reference = "mealhow-meal-plan-generator"
+
+[[package]]
 name = "multidict"
 version = "6.0.4"
 description = "multidict implementation"
@@ -2598,4 +2631,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4"
-content-hash = "a7a7c1c1e740ff1db8cd08ca21512d8bfedd2c1cc213df20085eecc95554bbfa"
+content-hash = "5473084f253cc1551e9e89dd6e9a4496863ee01141d98ea66e1d30842612dc19"

@@ -28,9 +28,9 @@ disallow_untyped_defs = true
 [tool.poetry]
 name = "mealhow-core-api"
 version = "0.1.0"
-description = "A FastAPI server for MealHow application"
+description = "A FastAPI server for MealHow application (AI-powered meal planning service)"
 authors = ["Vitalii Vinnychenko <vitalii@mealhow.ai>"]
-license = "MIT"
+license = "Proprietary"
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -52,6 +52,7 @@ isort = "^5.13.2"
 uvicorn = "^0.25.0"
 pydantic-settings = "^2.1.0"
 python-multipart = "^0.0.6"
+meal-plan-generator = {version = "^0.1.2", source = "mealhow-meal-plan-generator"}
 
 
 [tool.poetry.group.dev.dependencies]
@@ -77,6 +78,12 @@ pep8-naming = "0.13.3"
 flake8-deprecated = "2.2.1"
 black = "^23.12.1"
 isort = "^5.13.2"
+
+
+[[tool.poetry.source]]
+name = "mealhow-meal-plan-generator"
+url = "https://us-central1-python.pkg.dev/mealhow/mealhow-meal-plan-generator/simple/"
+priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]
