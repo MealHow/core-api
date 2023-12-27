@@ -19,6 +19,7 @@ aiohttp = "^3.9.1"
 gcloud-aio-storage = "^9.0.0"
 google-cloud-datastore = "^2.19.0"
 google-cloud-pubsub = "^2.19.0"
+openai = "0.28.1"
 
 
 [tool.poetry.group.dev.dependencies]

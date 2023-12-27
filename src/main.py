@@ -1,5 +1,6 @@
 from typing import Callable, Literal
 
+import openai
 import secure
 from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
 from fastapi import FastAPI, Request, Response, status
@@ -71,6 +72,7 @@ app.add_middleware(ElasticAPM, client=apm)
 @app.on_event("startup")
 async def startup() -> None:
     http_client.start()
+    openai.aiosession.set(http_client())
     cloud_storage_session.initialise(http_client())
 
 
