@@ -14,7 +14,7 @@ from core.http_client import HttpClient
 from core.logger import get_logger
 from external_api.cloud_storage import CloudStorage
 from helpers import custom_generate_unique_id
-from routes import meal, meal_plan, shopping_list, subscription, token, user
+from routes import auth, meal, meal_plan, shopping_list, subscription, user
 
 settings: Settings = get_settings()
 logger = get_logger(__name__)
@@ -24,7 +24,13 @@ http_client = HttpClient()
 cloud_storage_session = CloudStorage()
 pubsub_publisher = pubsub_v1.PublisherClient()
 ndb_client = ndb.Client(project=settings.PROJECT_ID, database=settings.DATASTORE_DB)
-app = FastAPI(root_path=settings.root_path, generate_unique_id_function=custom_generate_unique_id)
+app = FastAPI(
+    root_path=settings.root_path,
+    generate_unique_id_function=custom_generate_unique_id,
+    docs_url=None if settings.ENV == "prod" else "/docs",
+    redoc_url=None if settings.ENV == "prod" else "/redoc",
+    openapi_url=None if settings.ENV == "prod" else "/openapi.json",
+)
 
 csp = secure.ContentSecurityPolicy().default_src("'self'").frame_ancestors("'none'")
 hsts = secure.StrictTransportSecurity().max_age(31536000).include_subdomains()
@@ -57,7 +63,7 @@ apm = make_apm_client(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.client_origin_urls.split(","),
+    allow_origins=settings.CLIENT_ORIGIN_URLS.split(","),
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
     max_age=86400,
@@ -91,7 +97,18 @@ async def http_exception_handler(request: Request, exc: Any) -> JSONResponse:
 @app.middleware("http")
 async def set_secure_headers(request: Request, call_next: Callable) -> Response:
     response = await call_next(request)
+    if request.url.path in {
+        "/docs",
+        "/status",
+        "/error",
+        "/openapi.json",
+    }:
+        return response
+
     secure_headers.framework.fastapi(response)
+    if request.url.path.startswith(f"{settings.API_V1_PREFIX}/auth"):
+        return response
+
     return response
 
 
@@ -122,33 +139,33 @@ async def get_error() -> None:
 
 
 app.include_router(
-    token.router,
-    prefix="/token",
-    tags=["Token"],
+    auth.router,
+    prefix=f"{settings.API_V1_PREFIX}/auth",
+    tags=["Auth"],
 )
 app.include_router(
     user.router,
-    prefix="/user",
+    prefix=f"{settings.API_V1_PREFIX}/user",
     tags=["Users"],
 )
 app.include_router(
     meal.router,
-    prefix="/meals",
+    prefix=f"{settings.API_V1_PREFIX}/meals",
     tags=["Meals"],
 )
 app.include_router(
     meal_plan.router,
-    prefix="/meal-plans",
+    prefix=f"{settings.API_V1_PREFIX}/meal-plans",
     tags=["Meal plans"],
 )
 app.include_router(
     subscription.router,
-    prefix="/subscription",
+    prefix=f"{settings.API_V1_PREFIX}/subscription",
     tags=["Subscription"],
 )
 app.include_router(
     shopping_list.router,
-    prefix="/shopping-lists",
+    prefix=f"{settings.API_V1_PREFIX}/shopping-lists",
     tags=["Shopping lists"],
 )
 
@@ -158,8 +175,8 @@ if __name__ == "__main__":
     if __name__ == "__main__":
         uvicorn.run(
             app,
-            host=settings.host,
-            port=settings.port,
-            reload=settings.reload,
+            host=settings.HOST,
+            port=settings.PORT,
+            reload=settings.RELOAD,
             server_header=False,
         )

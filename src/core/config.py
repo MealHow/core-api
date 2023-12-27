@@ -10,12 +10,13 @@ class Settings(BaseSettings):
     """
 
     app_name: str = "mrv-service"
-    env: str = "local"
     root_path: str = ""
-    host: str = "0.0.0.0"
-    port: int = 8000
-    reload: bool = True
-    client_origin_urls: str = "http://localhost:3000,https://app.mealhow.ai"
+    ENV: str = "local"
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
+    RELOAD: bool = True
+    CLIENT_ORIGIN_URLS: str = "http://localhost:3000,https://app.mealhow.ai"
+    API_V1_PREFIX: str = "/api/v1"
     LOGGING_LEVEL: str = "CRITICAL"
 
     # Elastic APM configuration

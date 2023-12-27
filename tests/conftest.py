@@ -15,7 +15,7 @@ def client() -> TestClient:
 def headers_with_authorization(client: TestClient) -> dict[str, str]:
     settings = get_settings()
     response = client.post(
-        "/token",
+        "/auth/login",
         data={"username": settings.AUTH0_TEST_USERNAME, "password": settings.AUTH0_TEST_PASSWORD},
     )
     response.raise_for_status()

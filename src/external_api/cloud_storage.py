@@ -10,12 +10,12 @@ class CloudStorage:
     storage: Storage = None
 
     def initialise(self, session: Session) -> None:
-        if settings.GCLOUD_SERVICE_ACCOUNT and settings.env == "local":
+        if settings.GCLOUD_SERVICE_ACCOUNT and settings.ENV == "local":
             self.storage = Storage(
                 service_file=settings.GCLOUD_SERVICE_ACCOUNT,
                 session=session,
             )
-        elif settings.env in ("prod", "dev"):
+        elif settings.ENV in ("prod", "dev"):
             self.storage = Storage(session=session)
 
     def __call__(self) -> Storage:

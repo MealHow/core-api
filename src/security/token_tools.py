@@ -39,6 +39,7 @@ class TokenTools:
         Try to decode the access token,
         return the decoded claim.
         """
+        rsa_key = {}
         kid = self.header["kid"]
         for key in self.jwks["keys"]:
             if key["kid"] == kid:
