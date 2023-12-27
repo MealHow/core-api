@@ -13,7 +13,7 @@ from src.core.http_client import HttpClient
 from src.core.logger import get_logger
 from src.external_api.cloud_storage import CloudStorage
 from src.helpers import custom_generate_unique_id
-from src.routes import token, user
+from src.routes import meal, meal_plan, shopping_list, subscription, token, user
 
 settings: Settings = get_settings()
 logger = get_logger(__name__)
@@ -129,7 +129,26 @@ app.include_router(
     prefix="/user",
     tags=["Users"],
 )
-
+app.include_router(
+    meal.router,
+    prefix="/meal",
+    tags=["Meal"],
+)
+app.include_router(
+    meal_plan.router,
+    prefix="/meal-plan",
+    tags=["Meal plan"],
+)
+app.include_router(
+    subscription.router,
+    prefix="/subscription",
+    tags=["Subscription"],
+)
+app.include_router(
+    shopping_list.router,
+    prefix="/shopping-list",
+    tags=["Shopping list"],
+)
 
 if __name__ == "__main__":
     import uvicorn
