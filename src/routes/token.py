@@ -14,7 +14,6 @@ settings: Settings = get_settings()
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     auth0_token: authentication.GetToken = Depends(get_auth0_token_client),
-    # settings: Settings = Depends(get_settings) this raise 422 for some reason...
 ):
     """
     Get access token from auth0 /oauth/token endpoint.
@@ -51,5 +50,4 @@ async def login_callback(
     except Auth0Error as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
-    access_token = response.get("access_token")
     return response

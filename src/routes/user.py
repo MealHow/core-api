@@ -1,9 +1,7 @@
-import typing
-
 from auth0.v3.exceptions import Auth0Error
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import AnyUrl, BaseModel, EmailStr
 
+from models.user import CreateUser
 from src.core.config import Settings, get_settings
 from src.core.dependencies import authentication, get_auth0_management_client, get_auth0_users_client, management
 from src.security.funcs import verify_token
@@ -22,21 +20,6 @@ async def read_user_me(
     except Auth0Error as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
     return userinfo
-
-
-class CreateUser(BaseModel):
-    connection: str = settings.AUTH0_DEFAULT_DB_CONNECTION
-    email: EmailStr
-    password: str
-    name: str
-    verify_email: bool = False  # Whether the user will receive a verification email after creation (true) or no email (false). Overrides behavior of email_verified parameter.
-    email_verified: typing.Optional[
-        bool
-    ] = False  # Whether this email address is verified (true) or unverified (false). User will receive a verification email after creation if email_verified is false or not specified
-    given_name: typing.Optional[str] = None
-    family_name: typing.Optional[str] = None
-    nickname: typing.Optional[str] = None
-    picture: typing.Optional[AnyUrl] = None
 
 
 @router.post("/")
