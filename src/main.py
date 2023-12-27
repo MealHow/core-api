@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
+from google.cloud import datastore
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.core.config import Settings, get_settings
@@ -14,7 +15,6 @@ from src.core.logger import get_logger
 from src.external_api.cloud_storage import CloudStorage
 from src.routes import token, user
 
-gcloud_storage_session = CloudStorage()
 settings: Settings = get_settings()
 logger = get_logger(__name__)
 
@@ -27,6 +27,8 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 
 http_client = HttpClient()
+cloud_storage_session = CloudStorage()
+datastore_client = datastore.Client(database=settings.DATASTORE_DB)
 app = FastAPI(root_path=settings.root_path, generate_unique_id_function=custom_generate_unique_id)
 
 csp = secure.ContentSecurityPolicy().default_src("'self'").frame_ancestors("'none'")
@@ -95,9 +97,10 @@ async def set_secure_headers(request, call_next):
 
 
 @app.middleware("http")
-async def google_cloud_middleware(request: Request, call_next: Callable) -> Response:
-    request.state.gcloud_storage_client = gcloud_storage_session
-    request.state.gcloud_session = http_client
+async def client_middleware(request: Request, call_next: Callable) -> Response:
+    request.state.gcloud_storage_client = cloud_storage_session
+    request.state.datastore_client = datastore_client
+    request.state.http_client_session = http_client
     return await call_next(request)
 
 
