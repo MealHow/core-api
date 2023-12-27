@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     root_path: str = ""
     ENV: str = "local"
     HOST: str = "0.0.0.0"
-    PORT: int = 8000
+    PORT: int = 80
     RELOAD: bool = True
     CLIENT_ORIGIN_URLS: str = "http://localhost:3000,https://app.mealhow.ai"
     API_V1_PREFIX: str = "/api/v1"

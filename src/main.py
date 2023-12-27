@@ -1,5 +1,6 @@
 from typing import Any, Callable, Literal
 
+import jwt
 import openai
 import secure
 from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
@@ -10,11 +11,16 @@ from google.cloud import ndb, pubsub_v1
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from core.config import get_settings, Settings
+from core.custom_exceptions import (
+    BadCredentialsException,
+    RequiresAuthenticationException,
+)
 from core.http_client import HttpClient
 from core.logger import get_logger
 from external_api.cloud_storage import CloudStorage
 from helpers import custom_generate_unique_id
 from routes import auth, meal, meal_plan, shopping_list, subscription, user
+from security.headers import get_bearer_token
 
 settings: Settings = get_settings()
 logger = get_logger(__name__)
@@ -24,6 +30,8 @@ http_client = HttpClient()
 cloud_storage_session = CloudStorage()
 pubsub_publisher = pubsub_v1.PublisherClient()
 ndb_client = ndb.Client(project=settings.PROJECT_ID, database=settings.DATASTORE_DB)
+
+jwks_client = jwt.PyJWKClient(f"https://{settings.AUTH0_DOMAIN}/.well-known/jwks.json")
 app = FastAPI(
     root_path=settings.root_path,
     generate_unique_id_function=custom_generate_unique_id,
@@ -95,20 +103,50 @@ async def http_exception_handler(request: Request, exc: Any) -> JSONResponse:
 
 
 @app.middleware("http")
-async def set_secure_headers(request: Request, call_next: Callable) -> Response:
-    response = await call_next(request)
+async def set_secure_headers(request: Request, call_next: Callable) -> Response | JSONResponse:
     if request.url.path in {
         "/docs",
         "/status",
         "/error",
         "/openapi.json",
     }:
-        return response
+        return await call_next(request)
 
-    secure_headers.framework.fastapi(response)
     if request.url.path.startswith(f"{settings.API_V1_PREFIX}/auth"):
+        response = await call_next(request)
+        secure_headers.framework.fastapi(response)
         return response
+    try:
+        jwt_access_token = get_bearer_token(request)
+    except (BadCredentialsException, RequiresAuthenticationException) as e:
+        message = str(e.detail)
+        return JSONResponse({"message": message}, status_code=e.status_code)
 
+    try:
+        jwt_signing_key = jwks_client.get_signing_key_from_jwt(jwt_access_token).key
+        payload = jwt.decode(
+            jwt_access_token,
+            jwt_signing_key,
+            algorithms=settings.AUTH0_ALGORITHMS,
+            audience=settings.AUTH0_API_DEFAULT_AUDIENCE,
+            issuer=f"https://{settings.AUTH0_DOMAIN}/",
+        )
+    except jwt.exceptions.PyJWKClientError:
+        return JSONResponse(
+            {"message": "Unable to verify credentials"},
+            status_code=500,
+        )
+    except jwt.exceptions.InvalidTokenError:
+        return JSONResponse(
+            {"message": "Bad credentials"},
+            status_code=401,
+        )
+
+    request.state.access_token = jwt_access_token
+    request.state.user_id = payload["sub"]
+
+    response = await call_next(request)
+    secure_headers.framework.fastapi(response)
     return response
 
 
@@ -172,11 +210,8 @@ app.include_router(
 if __name__ == "__main__":
     import uvicorn
 
-    if __name__ == "__main__":
-        uvicorn.run(
-            app,
-            host=settings.HOST,
-            port=settings.PORT,
-            reload=settings.RELOAD,
-            server_header=False,
-        )
+    uvicorn.run(
+        app,
+        host=settings.HOST,
+        port=settings.PORT,
+    )
