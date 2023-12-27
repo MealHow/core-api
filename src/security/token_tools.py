@@ -2,23 +2,12 @@ import logging
 from typing import Optional
 
 import httpx
-from fastapi import HTTPException, status
 from fastapi.security import SecurityScopes
 from jose import JWTError, jwt
 
 from src.core.config import get_settings
+from src.core.custom_exceptions import CredentialsException, PermissionsException
 from src.security.token import AccessToken
-
-CREDENTIALS_EXCEPTION = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Could not validate credentials.",
-    headers={"WWW-Authenticate": "Bearer"},  # f'Bearer scope="{security_scopes.scope_str}"'
-)
-PERMISSIONS_EXCEPTION = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Not enough permissions.",
-    headers={"WWW-Authenticate": "Bearer"},  # f'Bearer scope="{security_scopes.scope_str}"'
-)
 
 settings = get_settings()
 JWKS = httpx.get(f"https://{settings.AUTH0_DOMAIN}/.well-known/jwks.json").json()
@@ -70,7 +59,7 @@ class TokenTools:
             )
 
         except JWTError:
-            raise CREDENTIALS_EXCEPTION
+            raise CredentialsException()
 
         return AccessToken(**verified_claim)
 
@@ -83,7 +72,7 @@ class TokenTools:
         if security_scopes:
             for scope in security_scopes.scopes:
                 if scope not in verified_claim.permissions:
-                    raise PERMISSIONS_EXCEPTION
+                    raise PermissionsException()
         return True
 
     def get_user_id(self, verify: bool = True) -> str:
