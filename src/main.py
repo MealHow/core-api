@@ -68,6 +68,11 @@ app.add_middleware(
     max_age=86400,
 )
 
+# Elastic APM instrumentation needs to be added after all the BaseHTTPMiddlewares to mitigate the mutated
+# context objects in Starlette
+# Caveat: APM instrumentation will lose the span data of the upward middlewares in the stack
+app.add_middleware(ElasticAPM, client=apm)
+
 
 @app.on_event("startup")
 async def startup() -> None:
@@ -102,14 +107,7 @@ async def client_middleware(request: Request, call_next: Callable) -> Response:
     return await call_next(request)
 
 
-# Elastic APM instrumentation needs to be added after all the BaseHTTPMiddlewares to mitigate the mutated
-# context objects in Starlette
-# Caveat: APM instrumentation will lose the span data of the upward middlewares in the stack
-app.add_middleware(ElasticAPM, client=apm)
-
-
 @app.get("/status", status_code=status.HTTP_200_OK, operation_id="status_200")
-@app.get("/status_401", status_code=status.HTTP_200_OK, operation_id="status_401")
 async def get_status(request: Request) -> dict[str, Literal[True]]:
     return {"healthy": True}
 
