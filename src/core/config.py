@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     ELASTIC_APM_DEBUG: bool = False
     ELASTIC_APM_CAPTURE_BODY: str = "all"
 
-    # AUTH0 configuration
+    # Auth0 configuration
     AUTH0_DOMAIN: str
     AUTH0_ALGORITHMS: str = "RS256"
     AUTH0_DEFAULT_DB_CONNECTION: str
@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     AUTH0_TEST_USERNAME: str
     AUTH0_TEST_PASSWORD: str
 
-    # Management API
+    # Auth0 Management API
     AUTH0_MANAGEMENT_API_CLIENT_ID: str
     AUTH0_MANAGEMENT_API_CLIENT_SECRET: str
     AUTH0_MANAGEMENT_API_AUDIENCE: str
