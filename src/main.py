@@ -10,17 +10,18 @@ from fastapi.responses import JSONResponse
 from google.cloud import ndb, pubsub_v1
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from core.auth import get_bearer_token, verify_jwt_token
 from core.config import get_settings, Settings
 from core.custom_exceptions import (
     BadCredentialsException,
     RequiresAuthenticationException,
+    UnableCredentialsException,
 )
 from core.http_client import HttpClient
 from core.logger import get_logger
 from external_api.cloud_storage import CloudStorage
 from helpers import custom_generate_unique_id
 from routes import auth, meal, meal_plan, shopping_list, subscription, user
-from security.headers import get_bearer_token
 
 settings: Settings = get_settings()
 logger = get_logger(__name__)
@@ -103,35 +104,16 @@ async def http_exception_handler(request: Request, exc: Any) -> JSONResponse:
 
 
 @app.middleware("http")
-async def headers_validation_middleware(request: Request, call_next: Callable) -> Response | JSONResponse:
+async def authorization_middleware(request: Request, call_next: Callable) -> Response | JSONResponse:
     if request.url.path in settings.WHITELISTED_PATHS or request.url.path.startswith(f"{settings.API_V1_PREFIX}/auth"):
         return await call_next(request)
 
     try:
         jwt_access_token = get_bearer_token(request)
-    except (BadCredentialsException, RequiresAuthenticationException) as e:
+        payload = verify_jwt_token(jwt_access_token, jwks_client)
+    except (BadCredentialsException, RequiresAuthenticationException, UnableCredentialsException) as e:
         message = str(e.detail)
         return JSONResponse({"message": message}, status_code=e.status_code)
-
-    try:
-        jwt_signing_key = jwks_client.get_signing_key_from_jwt(jwt_access_token).key
-        payload = jwt.decode(
-            jwt_access_token,
-            jwt_signing_key,
-            algorithms=settings.AUTH0_ALGORITHMS,
-            audience=settings.AUTH0_API_DEFAULT_AUDIENCE,
-            issuer=f"https://{settings.AUTH0_DOMAIN}/",
-        )
-    except jwt.exceptions.PyJWKClientError:
-        return JSONResponse(
-            {"message": "Unable to verify credentials"},
-            status_code=500,
-        )
-    except jwt.exceptions.InvalidTokenError:
-        return JSONResponse(
-            {"message": "Bad credentials"},
-            status_code=401,
-        )
 
     request.state.access_token = jwt_access_token
     request.state.user_id = payload["sub"]
