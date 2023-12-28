@@ -1,4 +1,4 @@
-import stripe
+from async_stripe import stripe
 from auth0.authentication import GetToken
 from auth0.exceptions import Auth0Error
 from auth0.management import Auth0
@@ -78,7 +78,7 @@ async def create_new_user(
             realm=settings.AUTH0_DEFAULT_DB_CONNECTION,
         )
 
-        customer = stripe.Customer.create(email=create_user.email, name=create_user.name)
+        customer = await stripe.Customer.create(email=create_user.email, name=create_user.name)
     except Auth0Error as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 

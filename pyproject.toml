@@ -53,7 +53,7 @@ uvicorn = "^0.25.0"
 pydantic-settings = "^2.1.0"
 python-multipart = "^0.0.6"
 meal-plan-generator = {version = "^0.1.2", source = "mealhow-meal-plan-generator"}
-stripe = "^7.10.0"
+async-stripe = "^6.1.0"
 
 
 [tool.poetry.group.dev.dependencies]

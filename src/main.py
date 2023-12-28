@@ -3,7 +3,7 @@ from typing import Any, Callable, Literal
 import jwt
 import openai
 import secure
-import stripe
+from async_stripe import stripe
 from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
 from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
