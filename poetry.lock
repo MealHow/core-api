@@ -1548,24 +1548,25 @@ files = [
 ]
 
 [[package]]
-name = "meal-plan-generator"
-version = "0.1.2"
+name = "mealhow-sdk"
+version = "0.1.3"
 description = ""
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "meal_plan_generator-0.1.2-py3-none-any.whl", hash = "sha256:83b61da125f22b8562bd3b500dd2a047c65d283df98dd67e63893de003233a8c"},
-    {file = "meal_plan_generator-0.1.2.tar.gz", hash = "sha256:f0739f32712ec8527d0d6c5b11a10ec8bbbb090385c3aef613a4fd7221199e5f"},
+    {file = "mealhow_sdk-0.1.3-py3-none-any.whl", hash = "sha256:18545a75ec69c946893ae342c969924ed360ef2584311cab5516e0567abf79e1"},
+    {file = "mealhow_sdk-0.1.3.tar.gz", hash = "sha256:5a57aaed6fa2a5a6ebf3f57946becc5b0546330a24abc7e733e984f7fb87f722"},
 ]
 
 [package.dependencies]
 asyncio = "3.4.3"
+google-cloud-ndb = "2.2.2"
 openai = "0.28.1"
 
 [package.source]
 type = "legacy"
-url = "https://us-central1-python.pkg.dev/mealhow/mealhow-meal-plan-generator/simple"
-reference = "mealhow-meal-plan-generator"
+url = "https://us-central1-python.pkg.dev/mealhow/mealhow-python/simple"
+reference = "mealhow-python"
 
 [[package]]
 name = "multidict"
@@ -2697,4 +2698,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4"
-content-hash = "30814ef28f9bb8a6ddebb1a06adde4f13a983145823bf6e806bf046b0c4d46f0"
+content-hash = "7fb73a7e410bf5efc2b6ae93d5d47a6b85301bc957faa9e3d1f2f52b97ee8a88"
