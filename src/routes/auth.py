@@ -60,7 +60,7 @@ async def login_callback(
     return response
 
 
-@router.post("/sign-up")
+@router.post("/signup")
 async def create_new_user(
     create_user: CreateUser,
     auth0_mgmt_client: management.Auth0 = Depends(get_auth0_management_client),
