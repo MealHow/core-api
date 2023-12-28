@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     AUTH0_APPLICATION_CLIENT_SECRET: str
     AUTH0_TEST_USERNAME: str
     AUTH0_TEST_PASSWORD: str
+    AUTH0_CALLBACK_URL: str = "http://localhost/login/callback"
 
     # Auth0 Management API
     AUTH0_MANAGEMENT_API_CLIENT_ID: str

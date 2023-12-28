@@ -45,7 +45,7 @@ async def login_callback(
         response = await auth0_token.authorization_code_async(
             grant_type="authorization_code",
             code=code,
-            redirect_uri="http://localhost/login/callback",
+            redirect_uri=settings.AUTH0_CALLBACK_URL,
         )
     except Auth0Error as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
