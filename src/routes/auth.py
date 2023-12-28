@@ -22,7 +22,7 @@ async def login_for_access_token(
     Get access token from auth0 /oauth/token endpoint.
     """
     try:
-        response = auth0_token.login(
+        response = await auth0_token.login_async(
             username=data.email,
             password=data.password,
             audience=settings.AUTH0_API_DEFAULT_AUDIENCE,
@@ -42,7 +42,7 @@ async def login_callback(
     auth0_token: GetToken = Depends(get_auth0_token_client),
 ) -> Response:
     try:
-        response = auth0_token.authorization_code(
+        response = await auth0_token.authorization_code_async(
             grant_type="authorization_code",
             code=code,
             redirect_uri="http://localhost/login/callback",
