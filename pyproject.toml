@@ -37,7 +37,7 @@ readme = "README.md"
 python = ">=3.9,<4"
 fastapi = "0.108.0"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
-auth0-python = "3.24.0"
+auth0-python = "4.7.0"
 pydantic = {extras = ["email"], version = "^2.5.3"}
 secure = "^0.3.0"
 elastic-apm = "^6.19.0"
@@ -53,6 +53,7 @@ uvicorn = "^0.25.0"
 pydantic-settings = "^2.1.0"
 python-multipart = "^0.0.6"
 meal-plan-generator = {version = "^0.1.2", source = "mealhow-meal-plan-generator"}
+stripe = "^7.10.0"
 
 
 [tool.poetry.group.dev.dependencies]

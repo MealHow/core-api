@@ -65,6 +65,7 @@ class Settings(BaseSettings):
 
     # Stripe
     STRIPE_API_KEY: str
+    STRIPE_WEBHOOK_SECRET: str | None = None
 
     class Config:
         """

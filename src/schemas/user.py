@@ -1,10 +1,15 @@
 import typing
 
-from pydantic import AnyUrl, BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr
 
 from core.config import get_settings, Settings
 
 settings: Settings = get_settings()
+
+
+class LoginUser(BaseModel):
+    email: EmailStr
+    password: str
 
 
 class CreateUser(BaseModel):
@@ -14,7 +19,4 @@ class CreateUser(BaseModel):
     name: str
     verify_email: bool = True
     email_verified: typing.Optional[bool] = False
-    given_name: typing.Optional[str] = None
-    family_name: typing.Optional[str] = None
     nickname: typing.Optional[str] = None
-    picture: typing.Optional[AnyUrl] = None

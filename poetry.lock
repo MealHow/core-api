@@ -216,21 +216,22 @@ tests-no-zope = ["cloudpickle", "hypothesis", "mypy (>=1.1.1)", "pympler", "pyte
 
 [[package]]
 name = "auth0-python"
-version = "3.24.0"
-description = "Auth0 Python SDK"
+version = "4.7.0"
+description = ""
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*"
+python-versions = ">=3.8"
 files = [
-    {file = "auth0-python-3.24.0.tar.gz", hash = "sha256:88d7bce9472342e77f2f25fd8b060819b3557000e3a43e2618cd7a0fe5212c71"},
-    {file = "auth0_python-3.24.0-py2.py3-none-any.whl", hash = "sha256:a76e308df407fad9c6c29cd9de9a89bc5c1f7236f051c824923904046aea27a1"},
+    {file = "auth0_python-4.7.0-py3-none-any.whl", hash = "sha256:440fb20661878e8c0d3009e81f45f13c6b8d6697d65dd796520c0e5ed2b4b2fe"},
+    {file = "auth0_python-4.7.0.tar.gz", hash = "sha256:441000cebf12aeb9b11c2c7b783f1bdf36217e735632d1c26569fdbe1f368461"},
 ]
 
 [package.dependencies]
-pyjwt = {version = ">=1.7.1", extras = ["crypto"]}
-requests = ">=2.14.0"
-
-[package.extras]
-test = ["coverage", "mock (>=1.3.0)", "pre-commit"]
+aiohttp = ">=3.8.5,<4.0.0"
+cryptography = ">=41.0.5,<42.0.0"
+pyjwt = ">=2.8.0,<3.0.0"
+pyopenssl = ">=23.2.0,<24.0.0"
+requests = ">=2.31.0,<3.0.0"
+urllib3 = ">=2.0.7,<3.0.0"
 
 [[package]]
 name = "backoff"
@@ -2023,9 +2024,6 @@ files = [
     {file = "PyJWT-2.8.0.tar.gz", hash = "sha256:57e28d156e3d5c10088e0c68abb90bfac3df82b40a71bd0daa20c65ccd5c23de"},
 ]
 
-[package.dependencies]
-cryptography = {version = ">=3.4.0", optional = true, markers = "extra == \"crypto\""}
-
 [package.extras]
 crypto = ["cryptography (>=3.4.0)"]
 dev = ["coverage[toml] (==5.0.4)", "cryptography (>=3.4.0)", "pre-commit", "pytest (>=6.0.0,<7.0.0)", "sphinx (>=4.5.0,<5.0.0)", "sphinx-rtd-theme", "zope.interface"]
@@ -2071,6 +2069,24 @@ files = [
     {file = "pymemcache-4.0.0-py2.py3-none-any.whl", hash = "sha256:f507bc20e0dc8d562f8df9d872107a278df049fa496805c1431b926f3ddd0eab"},
     {file = "pymemcache-4.0.0.tar.gz", hash = "sha256:27bf9bd1bbc1e20f83633208620d56de50f14185055e49504f4f5e94e94aff94"},
 ]
+
+[[package]]
+name = "pyopenssl"
+version = "23.3.0"
+description = "Python wrapper module around the OpenSSL library"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pyOpenSSL-23.3.0-py3-none-any.whl", hash = "sha256:6756834481d9ed5470f4a9393455154bc92fe7a64b7bc6ee2c804e78c52099b2"},
+    {file = "pyOpenSSL-23.3.0.tar.gz", hash = "sha256:6b2cba5cc46e822750ec3e5a81ee12819850b11303630d575e98108a079c2b12"},
+]
+
+[package.dependencies]
+cryptography = ">=41.0.5,<42"
+
+[package.extras]
+docs = ["sphinx (!=5.2.0,!=5.2.0.post0,!=7.2.5)", "sphinx-rtd-theme"]
+test = ["flaky", "pretend", "pytest (>=3.0.1)"]
 
 [[package]]
 name = "pytest"
@@ -2332,6 +2348,21 @@ typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""
 
 [package.extras]
 full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyaml"]
+
+[[package]]
+name = "stripe"
+version = "7.10.0"
+description = "Python bindings for the Stripe API"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "stripe-7.10.0-py2.py3-none-any.whl", hash = "sha256:57e2414ad17fe3444188573fb2e26903cd27dbd92791feda7f0688382fb4c840"},
+    {file = "stripe-7.10.0.tar.gz", hash = "sha256:e789b89be1068dc86e036f53bb44734df6858dcff5ff603ef2850d2e1a17ca24"},
+]
+
+[package.dependencies]
+requests = {version = ">=2.20", markers = "python_version >= \"3.0\""}
+typing-extensions = {version = ">=4.5.0", markers = "python_version >= \"3.7\""}
 
 [[package]]
 name = "tomli"
@@ -2631,4 +2662,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4"
-content-hash = "5473084f253cc1551e9e89dd6e9a4496863ee01141d98ea66e1d30842612dc19"
+content-hash = "34db85ac99ff5d8e5dab65af752243894faf9e19f196f3d08db3e1c192c63800"

@@ -22,3 +22,6 @@ class HttpClient:
     def __call__(self) -> ClientSession:
         assert self.session is not None
         return self.session
+
+
+http_client = HttpClient()
