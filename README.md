@@ -116,7 +116,7 @@ gcloud auth application-default login
 # if you get an error about the project quota being insufficient, please check with devops, this could be a permissions error on your google account
 ```
 
-## 3.1 MRV GCP credentials
+## 3.1 GCP credentials
 
 Copy credentials json in the response from `gcloud auth application-default login` to `[core-api code folder]/sa.json` for use by the application.
 Sometimes it ends up in `.config/gcloud/credentials.db`.
