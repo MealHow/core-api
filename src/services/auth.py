@@ -1,4 +1,5 @@
 import datetime
+from typing import Any
 
 import pycountry
 from dateutil.relativedelta import relativedelta
@@ -14,29 +15,9 @@ settings = get_settings()
 tf = TimezoneFinder()
 
 
-async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id: str, stripe_customer_id: str) -> None:
-    country_iso_code = request.headers.get(settings.CLIENT_COUNTRY_HEADER)
-    subdivision_iso_code = request.headers.get(settings.CLIENT_COUNTRY_SUBDIVISION_HEADER)
-    cdn_cache_id = request.headers.get(settings.CLIENT_CDN_CACHE_ID_HEADER)
-    client_protocol = request.headers.get(settings.CLIENT_PROTOCOL_HEADER)
-    location = request.headers.get(settings.CLIENT_LAT_LONG_HEADER).split(",")
-    timezone = tf.timezone_at(lat=float(location[0].strip()), lng=float(location[1].strip()))
-
-    if user_obj.personal_info.measurement_system == enums.MeasurementSystem.metric.value:
-        height_cm = user_obj.personal_info.height
-        current_weight_kg = user_obj.personal_info.current_weight
-        weight_goal_kg = user_obj.personal_info.weight_goal
-        height_inches = await helpers.convert_height_to_imperial(height_cm)
-        current_weight_lbs = await helpers.convert_weight_to_imperial(current_weight_kg)
-        weight_goal_lbs = await helpers.convert_weight_to_imperial(weight_goal_kg)
-    else:
-        height_inches = user_obj.personal_info.height
-        current_weight_lbs = user_obj.personal_info.current_weight
-        weight_goal_lbs = user_obj.personal_info.weight_goal
-        height_cm = await helpers.convert_height_to_metric(height_inches)
-        current_weight_kg = await helpers.convert_weight_to_metric(current_weight_lbs)
-        weight_goal_kg = await helpers.convert_weight_to_metric(weight_goal_lbs)
-
+async def get_bmr_and_total_calories_goal(
+    current_weight_kg: int, height_cm: int, user_obj: CreateUser
+) -> tuple[int, int]:
     bmr_hb = await helpers.get_basal_metabolic_rate_harris_benedict(
         weight=current_weight_kg,
         height=height_cm,
@@ -56,6 +37,50 @@ async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id:
     calories_goal = await helpers.get_calories_goal_by_goal_type(activity_adjusted_bmr, user_obj.personal_info.goal)
     calories_goal = await helpers.round_calories_goal_to_nearest_100(calories_goal)
 
+    return bmr, calories_goal
+
+
+async def get_weight_record(weight_lbs: int, weight_kg: int, height_cm: int) -> datastore_models.WeightRecord:
+    return datastore_models.WeightRecord(
+        weight_lbs=weight_lbs,
+        weight_kg=weight_kg,
+        bmi=await helpers.get_bmi(weight_kg, height_cm),
+    )
+
+
+async def extract_data_from_headers(request: Request) -> dict[str, Any]:
+    country_iso_code = request.headers.get(settings.CLIENT_COUNTRY_HEADER)
+    subdivision_iso_code = request.headers.get(settings.CLIENT_COUNTRY_SUBDIVISION_HEADER)
+    location = request.headers.get(settings.CLIENT_LAT_LONG_HEADER).split(",")
+    return {
+        "cdn_cache_id": request.headers.get(settings.CLIENT_CDN_CACHE_ID_HEADER),
+        "client_protocol": request.headers.get(settings.CLIENT_PROTOCOL_HEADER),
+        "timezone": tf.timezone_at(lat=float(location[0].strip()), lng=float(location[1].strip())),
+        "country": pycountry.countries.get(alpha_2=country_iso_code).name if country_iso_code else None,
+        "country_subdivision": pycountry.subdivisions.get(code=subdivision_iso_code).name
+        if subdivision_iso_code
+        else None,
+    }
+
+
+async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id: str, stripe_customer_id: str) -> None:
+    if user_obj.personal_info.measurement_system == enums.MeasurementSystem.metric.value:
+        height_cm = user_obj.personal_info.height
+        current_weight_kg = user_obj.personal_info.current_weight
+        weight_goal_kg = user_obj.personal_info.weight_goal
+        height_inches = await helpers.convert_height_to_imperial(height_cm)
+        current_weight_lbs = await helpers.convert_weight_to_imperial(current_weight_kg)
+        weight_goal_lbs = await helpers.convert_weight_to_imperial(weight_goal_kg)
+    else:
+        height_inches = user_obj.personal_info.height
+        current_weight_lbs = user_obj.personal_info.current_weight
+        weight_goal_lbs = user_obj.personal_info.weight_goal
+        height_cm = await helpers.convert_height_to_metric(height_inches)
+        current_weight_kg = await helpers.convert_weight_to_metric(current_weight_lbs)
+        weight_goal_kg = await helpers.convert_weight_to_metric(weight_goal_lbs)
+
+    bmr, calories_goal = await get_bmr_and_total_calories_goal(current_weight_kg, height_cm, user_obj)
+
     key = ndb.Key(datastore_models.User, user_id)
     user_entity = datastore_models.User(
         key=key,
@@ -72,30 +97,11 @@ async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id:
         health_conditions=user_obj.personal_info.health_conditions,
         height_cm=height_cm,
         height_inches=height_inches,
-        current_weight=[
-            datastore_models.WeightRecord(
-                weight_lbs=current_weight_lbs,
-                weight_kg=current_weight_kg,
-                bmi=await helpers.get_bmi(current_weight_kg, height_cm),
-            )
-        ],
-        weight_goal=[
-            datastore_models.WeightRecord(
-                weight_lbs=weight_goal_lbs,
-                weight_kg=weight_goal_kg,
-                bmi=await helpers.get_bmi(weight_goal_kg, height_cm),
-            )
-        ],
+        current_weight=[await get_weight_record(current_weight_lbs, current_weight_kg, height_cm)],
+        weight_goal=[await get_weight_record(weight_goal_lbs, weight_goal_kg, height_cm)],
         bmr=bmr,
         calories_goal=calories_goal,
         stripe_customer_id=stripe_customer_id,
-        timezone=timezone,
-        platform=user_obj.personal_info.platform,
-        cdn_cache_id=cdn_cache_id,
-        client_protocol=client_protocol,
-        country=pycountry.countries.get(alpha_2=country_iso_code).name if country_iso_code else None,
-        country_subdivision=pycountry.subdivisions.get(code=subdivision_iso_code).name
-        if subdivision_iso_code
-        else None,
+        **(await extract_data_from_headers(request)),
     )
     user_entity.put()
