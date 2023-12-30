@@ -61,7 +61,7 @@ async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id:
         key=key,
         email=user_obj.email,
         goal=user_obj.personal_info.goal,
-        age=datetime.datetime.now() - relativedelta(years=int(user_obj.personal_info.age)),
+        birth_year=datetime.datetime.now() - relativedelta(years=int(user_obj.personal_info.age)),
         biological_sex=user_obj.personal_info.biological_sex,
         meal_prep_time=user_obj.personal_info.meal_prep_time,
         activity_level=user_obj.personal_info.activity_level,

@@ -61,7 +61,7 @@ class Settings(BaseSettings):
     PROJECT_ID: str
     DATASTORE_DB: str
     GCS_MEAL_IMAGES_BUCKET: str | None = None
-    PUBSUB_MEAL_PLAN_EVENT_TOPIC: str | None = None
+    PUBSUB_MEAL_PLAN_EVENT_TOPIC_ID: str
 
     # OpenAI
     OPENAI_API_KEY: str

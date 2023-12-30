@@ -1,5 +1,4 @@
-from google import pubsub_v1
-from google.cloud import ndb
+from google.cloud import ndb, pubsub_v1
 from mealhow_sdk.clients import CloudStorage
 
 from core.config import get_settings
