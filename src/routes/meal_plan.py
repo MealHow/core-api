@@ -25,6 +25,8 @@ async def create_meal_plan(
         topic=settings.PUBSUB_MEAL_PLAN_EVENT_TOPIC_ID,
     )
 
+    # TODO: Calculate new calories goal and user's age
+
     input_data = {"user_id": request.state.user_id}
     data = json.dumps(input_data).encode("utf-8")
     request.state.pubsub_publisher.publish(topic, data)
