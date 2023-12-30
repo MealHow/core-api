@@ -1,10 +1,10 @@
 import typing
 from enum import Enum
 
+from mealhow_sdk import enums
 from pydantic import BaseModel, EmailStr
 
 from core.config import get_settings, Settings
-from mealhow_sdk import enums
 
 settings: Settings = get_settings()
 

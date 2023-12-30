@@ -1,9 +1,10 @@
 import datetime
-from dateutil.relativedelta import relativedelta
+
 import pycountry
+from dateutil.relativedelta import relativedelta
 from fastapi import Request
 from google.cloud import ndb
-from mealhow_sdk import datastore_models, helpers, enums
+from mealhow_sdk import datastore_models, enums, helpers
 from timezonefinder import TimezoneFinder
 
 from core.config import get_settings
@@ -40,16 +41,18 @@ async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id:
         weight=current_weight_kg,
         height=height_cm,
         age=user_obj.personal_info.age,
-        sex=user_obj.personal_info.biological_sex
+        sex=user_obj.personal_info.biological_sex,
     )
     bmr_msj = await helpers.get_basal_metabolic_rate_mifflin_st_jeor(
         weight=current_weight_kg,
         height=height_cm,
         age=user_obj.personal_info.age,
-        sex=user_obj.personal_info.biological_sex
+        sex=user_obj.personal_info.biological_sex,
     )
     bmr = int(round((bmr_hb + bmr_msj) / 2))
-    activity_adjusted_bmr = await helpers.get_calories_goal_by_activity_level(bmr, user_obj.personal_info.activity_level)
+    activity_adjusted_bmr = await helpers.get_calories_goal_by_activity_level(
+        bmr, user_obj.personal_info.activity_level
+    )
     calories_goal = await helpers.get_calories_goal_by_goal_type(activity_adjusted_bmr, user_obj.personal_info.goal)
     calories_goal = await helpers.round_calories_goal_to_nearest_100(calories_goal)
 
@@ -69,16 +72,20 @@ async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id:
         health_conditions=user_obj.personal_info.health_conditions,
         height_cm=height_cm,
         height_inches=height_inches,
-        current_weight=[datastore_models.WeightRecord(
-            weight_lbs=current_weight_lbs,
-            weight_kg=current_weight_kg,
-            bmi=await helpers.get_bmi(current_weight_kg, height_cm),
-        )],
-        weight_goal=[datastore_models.WeightRecord(
-            weight_lbs=weight_goal_lbs,
-            weight_kg=weight_goal_kg,
-            bmi=await helpers.get_bmi(weight_goal_kg, height_cm),
-        )],
+        current_weight=[
+            datastore_models.WeightRecord(
+                weight_lbs=current_weight_lbs,
+                weight_kg=current_weight_kg,
+                bmi=await helpers.get_bmi(current_weight_kg, height_cm),
+            )
+        ],
+        weight_goal=[
+            datastore_models.WeightRecord(
+                weight_lbs=weight_goal_lbs,
+                weight_kg=weight_goal_kg,
+                bmi=await helpers.get_bmi(weight_goal_kg, height_cm),
+            )
+        ],
         bmr=bmr,
         calories_goal=calories_goal,
         stripe_customer_id=stripe_customer_id,
@@ -87,6 +94,8 @@ async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id:
         cdn_cache_id=cdn_cache_id,
         client_protocol=client_protocol,
         country=pycountry.countries.get(alpha_2=country_iso_code).name if country_iso_code else None,
-        country_subdivision=pycountry.subdivisions.get(code=subdivision_iso_code).name if subdivision_iso_code else None,
+        country_subdivision=pycountry.subdivisions.get(code=subdivision_iso_code).name
+        if subdivision_iso_code
+        else None,
     )
     user_entity.put()
