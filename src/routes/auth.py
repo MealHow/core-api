@@ -2,11 +2,16 @@ from async_stripe import stripe
 from auth0.authentication import GetToken
 from auth0.exceptions import Auth0Error
 from auth0.management import Auth0
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from core.config import get_settings, Settings
-from core.dependencies import get_auth0_management_client, get_auth0_token_client
+from core.dependencies import (
+    create_ndb_context,
+    get_auth0_management_client,
+    get_auth0_token_client,
+)
 from schemas.user import CreateUser, LoginUser
+from services.auth import create_user_db_entity
 
 router = APIRouter()
 
@@ -53,8 +58,9 @@ async def login_callback(
     return response
 
 
-@router.post("/signup")
+@router.post("/signup", dependencies=[Depends(create_ndb_context)])
 async def create_new_user(
+    request: Request,
     create_user: CreateUser,
     auth0_mgmt_client: Auth0 = Depends(get_auth0_management_client),
     auth0_token: GetToken = Depends(get_auth0_token_client),
@@ -66,7 +72,10 @@ async def create_new_user(
     try:
         # Create user in auth0 db
         create_user.nickname = create_user.email
-        await auth0_mgmt_client.users.create_async(body=create_user.model_dump())
+        new_user_body = dict(create_user.model_dump())
+        del new_user_body["personal_info"]
+
+        new_user_auth0_obj = await auth0_mgmt_client.users.create_async(body=new_user_body)
 
         # Get access token for new user
         response = await auth0_token.login_async(
@@ -79,7 +88,8 @@ async def create_new_user(
         )
 
         customer = await stripe.Customer.create(email=create_user.email, name=create_user.name)
+        await create_user_db_entity(request, create_user, new_user_auth0_obj["user_id"], customer["id"])
     except Auth0Error as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
-    return {"access_token": response["access_token"], "token_type": "bearer", "stripe_customer_id": customer["id"]}
+    return {"access_token": response["access_token"], "token_type": "bearer"}

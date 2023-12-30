@@ -8,30 +8,25 @@ from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
 from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from google.cloud import ndb, pubsub_v1
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from core.auth import get_bearer_token, verify_jwt_token
+from core.clients import cloud_storage_session, ndb_client, pubsub_publisher
 from core.config import get_settings, Settings
 from core.custom_exceptions import (
     BadCredentialsException,
     RequiresAuthenticationException,
     UnableCredentialsException,
 )
+from core.helpers import custom_generate_unique_id
 from core.http_client import http_client
 from core.logger import get_logger
-from external_api.cloud_storage import CloudStorage
-from helpers import custom_generate_unique_id
 from routes import auth, meal, meal_plan, shopping_list, subscription, user
 
 settings: Settings = get_settings()
 logger = get_logger(__name__)
 
 stripe.api_key = settings.STRIPE_API_KEY
-
-cloud_storage_session = CloudStorage()
-pubsub_publisher = pubsub_v1.PublisherClient()
-ndb_client = ndb.Client(project=settings.PROJECT_ID, database=settings.DATASTORE_DB)
 
 jwks_client = jwt.PyJWKClient(f"https://{settings.AUTH0_DOMAIN}/.well-known/jwks.json")
 app = FastAPI(

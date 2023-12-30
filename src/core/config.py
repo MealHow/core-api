@@ -25,6 +25,13 @@ class Settings(BaseSettings):
         "/openapi.json",
     }
 
+    # Custom headers
+    CLIENT_COUNTRY_HEADER: str = "X-Client-Country"
+    CLIENT_COUNTRY_SUBDIVISION_HEADER: str = "X-Client-Country-Subdivision"
+    CLIENT_CDN_CACHE_ID_HEADER: str = "X-Client-Cdn-Cache-Id"
+    CLIENT_PROTOCOL_HEADER: str = "X-Client-Protocol"
+    CLIENT_LAT_LONG_HEADER: str = "X-Client-Lat-Long"
+
     # Elastic APM configuration
     ELASTIC_APM_SERVER_URL: str = ""
     ELASTIC_APM_ENABLED: bool = False

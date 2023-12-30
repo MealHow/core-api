@@ -1,6 +1,9 @@
+from typing import AsyncGenerator
+
 from auth0 import authentication, management
 from auth0.asyncify import asyncify
 
+from core.clients import ndb_client
 from core.config import get_settings, Settings
 from core.http_client import http_client
 
@@ -52,3 +55,8 @@ async def get_auth0_management_client() -> management.Auth0:
         domain=settings.AUTH0_DOMAIN,
         token=await get_auth0_management_api_token(),
     )
+
+
+async def create_ndb_context() -> AsyncGenerator:
+    with ndb_client.context():
+        yield
