@@ -9,42 +9,40 @@ from mealhow_sdk import datastore_models, enums, helpers
 from timezonefinder import TimezoneFinder
 
 from core.config import get_settings
-from schemas.user import CreateUser
+from schemas.user import CreateUser, PatchPersonalInfo, PersonalInfo
 
 settings = get_settings()
 tf = TimezoneFinder()
 
 
 async def get_bmr_and_total_calories_goal(
-    current_weight_kg: int, height_cm: int, user_obj: CreateUser
+    body_params: dict[str, Any], personal_info: PersonalInfo | PatchPersonalInfo
 ) -> tuple[int, int]:
     bmr_hb = await helpers.get_basal_metabolic_rate_harris_benedict(
-        weight=current_weight_kg,
-        height=height_cm,
-        age=user_obj.personal_info.age,
-        sex=user_obj.personal_info.biological_sex,
+        weight=body_params["current_weight_kg"],
+        height=body_params["height_cm"],
+        age=personal_info.age,
+        sex=personal_info.biological_sex,
     )
     bmr_msj = await helpers.get_basal_metabolic_rate_mifflin_st_jeor(
-        weight=current_weight_kg,
-        height=height_cm,
-        age=user_obj.personal_info.age,
-        sex=user_obj.personal_info.biological_sex,
+        weight=body_params["current_weight_kg"],
+        height=body_params["height_cm"],
+        age=personal_info.age,
+        sex=personal_info.biological_sex,
     )
     bmr = int(round((bmr_hb + bmr_msj) / 2))
-    activity_adjusted_bmr = await helpers.get_calories_goal_by_activity_level(
-        bmr, user_obj.personal_info.activity_level
-    )
-    calories_goal = await helpers.get_calories_goal_by_goal_type(activity_adjusted_bmr, user_obj.personal_info.goal)
+    activity_adjusted_bmr = await helpers.get_calories_goal_by_activity_level(bmr, personal_info.activity_level)
+    calories_goal = await helpers.get_calories_goal_by_goal_type(activity_adjusted_bmr, personal_info.goal)
     calories_goal = await helpers.round_calories_goal_to_nearest_100(calories_goal)
 
     return bmr, calories_goal
 
 
-async def get_weight_record(weight_lbs: int, weight_kg: int, height_cm: int) -> datastore_models.WeightRecord:
+async def get_weight_record(body_params: dict[str, Any], key_prefix: str) -> datastore_models.WeightRecord:
     return datastore_models.WeightRecord(
-        weight_lbs=weight_lbs,
-        weight_kg=weight_kg,
-        bmi=await helpers.get_bmi(weight_kg, height_cm),
+        weight_lbs=body_params[f"{key_prefix}_lbs"],
+        weight_kg=body_params[f"{key_prefix}_kg"],
+        bmi=await helpers.get_bmi(body_params[f"{key_prefix}_kg"], body_params["height_cm"]),
     )
 
 
@@ -63,23 +61,29 @@ async def extract_data_from_headers(request: Request) -> dict[str, Any]:
     }
 
 
-async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id: str, stripe_customer_id: str) -> None:
-    if user_obj.personal_info.measurement_system == enums.MeasurementSystem.metric.value:
-        height_cm = user_obj.personal_info.height
-        current_weight_kg = user_obj.personal_info.current_weight
-        weight_goal_kg = user_obj.personal_info.weight_goal
-        height_inches = await helpers.convert_height_to_imperial(height_cm)
-        current_weight_lbs = await helpers.convert_weight_to_imperial(current_weight_kg)
-        weight_goal_lbs = await helpers.convert_weight_to_imperial(weight_goal_kg)
+async def calculate_weight_and_height(personal_info: PersonalInfo | PatchPersonalInfo) -> dict[str, Any]:
+    params = {}
+    if personal_info.measurement_system == enums.MeasurementSystem.metric.value:
+        params["height_cm"] = personal_info.height
+        params["current_weight_kg"] = personal_info.current_weight
+        params["weight_goal_kg"] = personal_info.weight_goal
+        params["height_inches"] = await helpers.convert_height_to_imperial(params["height_cm"])
+        params["current_weight_lbs"] = await helpers.convert_weight_to_imperial(params["current_weight_kg"])
+        params["weight_goal_lbs"] = await helpers.convert_weight_to_imperial(params["weight_goal_kg"])
     else:
-        height_inches = user_obj.personal_info.height
-        current_weight_lbs = user_obj.personal_info.current_weight
-        weight_goal_lbs = user_obj.personal_info.weight_goal
-        height_cm = await helpers.convert_height_to_metric(height_inches)
-        current_weight_kg = await helpers.convert_weight_to_metric(current_weight_lbs)
-        weight_goal_kg = await helpers.convert_weight_to_metric(weight_goal_lbs)
+        params["height_inches"] = personal_info.height
+        params["current_weight_lbs"] = personal_info.current_weight
+        params["weight_goal_lbs"] = personal_info.weight_goal
+        params["height_cm"] = await helpers.convert_height_to_metric(params["height_inches"])
+        params["current_weight_kg"] = await helpers.convert_weight_to_metric(params["current_weight_lbs"])
+        params["weight_goal_kg"] = await helpers.convert_weight_to_metric(params["weight_goal_lbs"])
 
-    bmr, calories_goal = await get_bmr_and_total_calories_goal(current_weight_kg, height_cm, user_obj)
+    return params
+
+
+async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id: str, stripe_customer_id: str) -> None:
+    body_params = await calculate_weight_and_height(user_obj.personal_info)
+    bmr, calories_goal = await get_bmr_and_total_calories_goal(body_params, user_obj.personal_info)
 
     key = ndb.Key(datastore_models.User, user_id)
     user_entity = datastore_models.User(
@@ -95,13 +99,14 @@ async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id:
         avoid_foods=user_obj.personal_info.avoid_ingredients,
         preferred_cuisines=user_obj.personal_info.preferred_cuisines,
         health_conditions=user_obj.personal_info.health_conditions,
-        height_cm=height_cm,
-        height_inches=height_inches,
-        current_weight=[await get_weight_record(current_weight_lbs, current_weight_kg, height_cm)],
-        weight_goal=[await get_weight_record(weight_goal_lbs, weight_goal_kg, height_cm)],
+        height_cm=body_params["height_cm"],
+        height_inches=body_params["height_inches"],
+        current_weight=[await get_weight_record(body_params, "current_weight")],
+        weight_goal=[await get_weight_record(body_params, "weight_goal")],
         bmr=bmr,
         calories_goal=calories_goal,
         stripe_customer_id=stripe_customer_id,
+        platform=user_obj.personal_info.platform,
         **(await extract_data_from_headers(request)),
     )
     user_entity.put()
