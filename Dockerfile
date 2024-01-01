@@ -24,7 +24,6 @@ WORKDIR /app
 
 RUN poetry self add "keyrings.google-artifactregistry-auth"
 RUN poetry install --no-interaction --no-ansi --no-root
-RUN rm /tmp/sa-artifact-registry.json
 
 COPY . /app
 
