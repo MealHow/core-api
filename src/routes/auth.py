@@ -2,7 +2,7 @@ from async_stripe import stripe
 from auth0.authentication import GetToken
 from auth0.exceptions import Auth0Error
 from auth0.management import Auth0
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 from core.config import get_settings, Settings
 from core.dependencies import (
@@ -10,6 +10,7 @@ from core.dependencies import (
     get_auth0_management_client,
     get_auth0_token_client,
 )
+from schemas.auth import AccessToken
 from schemas.user import CreateUser, LoginUser
 from services.auth import create_user_db_entity
 
@@ -18,11 +19,15 @@ router = APIRouter()
 settings: Settings = get_settings()
 
 
-@router.post("/login")
+@router.post(
+    "/login",
+    status_code=status.HTTP_200_OK,
+    response_model=AccessToken,
+)
 async def login_for_access_token(
     data: LoginUser,
     auth0_token: GetToken = Depends(get_auth0_token_client),
-) -> dict:
+) -> AccessToken:
     """
     Get access token from auth0 /oauth/token endpoint.
     """
@@ -38,10 +43,13 @@ async def login_for_access_token(
     except Auth0Error as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
-    return {"access_token": response["access_token"], "token_type": "bearer"}
+    return AccessToken(access_token=response["access_token"])
 
 
-@router.get("/callback")
+@router.get(
+    "/callback",
+    status_code=status.HTTP_200_OK,
+)
 async def login_callback(
     code: str,
     auth0_token: GetToken = Depends(get_auth0_token_client),
@@ -58,17 +66,18 @@ async def login_callback(
     return response
 
 
-@router.post("/signup", dependencies=[Depends(create_ndb_context)])
+@router.post(
+    "/signup",
+    status_code=status.HTTP_201_CREATED,
+    response_model=AccessToken,
+    dependencies=[Depends(create_ndb_context)],
+)
 async def create_new_user(
     request: Request,
     create_user: CreateUser,
     auth0_mgmt_client: Auth0 = Depends(get_auth0_management_client),
     auth0_token: GetToken = Depends(get_auth0_token_client),
-) -> dict:
-    """
-    Create user in auth0.
-    if verify_email=True -> send verification mail
-    """
+) -> AccessToken:
     try:
         # Create user in auth0 db
         create_user.nickname = create_user.email
@@ -92,4 +101,4 @@ async def create_new_user(
     except Auth0Error as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
-    return {"access_token": response["access_token"], "token_type": "bearer"}
+    return AccessToken(access_token=response["access_token"])
