@@ -16,13 +16,15 @@ RUN pip install -U pip \
     pip install poetry==$POETRY_VERSION
 RUN poetry config virtualenvs.create false
 
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/gcp_service_account
+COPY ./sa.json /tmp/sa-artifact-registry.json
+ENV GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa-artifact-registry.json
 
 COPY poetry.lock pyproject.toml /app/
 WORKDIR /app
 
 RUN poetry self add "keyrings.google-artifactregistry-auth"
 RUN poetry install --no-interaction --no-ansi --no-root
+RUN rm /tmp/sa-artifact-registry.json
 
 COPY . /app
 

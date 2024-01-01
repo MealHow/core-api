@@ -1,0 +1,13 @@
+{
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "client_email": "vitalii-sa@mealhow.iam.gserviceaccount.com",
+  "client_id": "118072200241454313182",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/vitalii-sa%40mealhow.iam.gserviceaccount.com",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCnIqXsi1SWx9O7\nza40KiaVxB+EZ8ccrkDSQ6w42MwZ3OmXw3dSMB3JCkVxO8spBTOJ8zYAIX2TBjaM\nrtyKUzEOHa9dtOQu3IqrntsPjvHPHTBVLdbihzeUIBlmuGBCM8lxSva/l8Yq+ZSc\nXQZe3/GaKQpLaxh2eRn8+Vo9qhis2UjJhf+hfyxNvk9iHkHtU31o0i11VoyN34Tj\nIevQb9/nnakQ/rtqIsDDf3cwphL/YPSVBvfDFysZA6fNu3RjfKD6cbjqPm+FpzCG\nTFVIWzWAgXa1LS1EBBoFpObocvA6HZS2qo/JvLdD3/eqM+A4RjFk1ozsY0Ly5o8P\nceDtilmtAgMBAAECggEAAiLFtwuixZiBIq3Cs6T0QEa01mbTGxE4/9bgjQtsNEpn\n68oSLMkzoD2S3JsUgg4wdetXPdIvviC+sraLV/MvNcx4ULy+i8DCvuW1S/IaMfjg\nBL6kt9ldgvWUDYV+qWnrAZkhJRql7CerWAIyUiUPe9ZZbNROCDmM9PgkyJPzY8YP\nvhhLjpRpz50jTZZDMV49EuuQS4oIKJXCgLx0A+ArbIl+dwiT2PNO0SGSnslUEDAw\n6NgAjT2+SH84Plzvm/JFICeaFXIdEvNMYMyCPmyIf0kcufBJ4DWdXH5F+Z0WYfOs\n3F8uZTEkDcsiWeLdq02FKOCgug+N3ecqnejKuofKYQKBgQDppmcQShs6RvpC18sk\nwecaMy6koJ9yC861cmDWuV3WupWHp2XZbifsPNw43NutuO5uGUDhtjzfvrvU2a3D\nNpAQXA2PpwsVlQib3ZEI85x5f0eupmrVHOt3KNQS1245j9kK3d2hyIB6TFqqzk98\ngBpHqVUkQSmszCJo9jUF/1CmcQKBgQC3H3D2GrlC3keqgPtM96IM9it+GdmVgVOS\nnO/tGXWX3IMpqD80WrDGovIux/YnEOCJh5GyBW0pgKQ3V1eFMdoMvpHwZJx/DznC\n8EsahvF//uZUWGvlX6X82ZClo5GhGm55BUNLu2DX9mSzthNLD7BHwf1TrDV7axLa\na/Mlanmc/QKBgEXLkHP8Px/sfeujvKoxRhC8g01oMdkGj+wBy824t8BiIjLQnYsS\n7dgS4hIWX4UIfijjYE9Meei4eDGACPkMfoJ0jRSBaL08tMKisCWFaBOfItGYIseg\niPIifx9VvTZysvodBozCcSaXUmo9kN73AWKwwZ8/2+wjWpASJAqzlurxAoGABegr\nuqSOCUwmP6e9c3QhdA2UxZKL5Dixu274hktl8aoZSQS2VTf/r8idy0iD9iqjM4x9\n9KIcLVSK94YHurIq+HJFPt3f9nFFSbZ6lbZ4n8pXH61ifZmiPw+9jLpD/lBd8+Vp\nkE3RB+ZYxTtAUBGHfCkTxNkvOHXxu73zr+dJWPkCgYEAg4HbuuT1yz6Kneu9tJtj\n9w3VJ5tHpjlbiCxfXPu+gYNyOVG2yYrjaCmvbBqFea/v9xpisEfeTIna+x7zQuiQ\n6jrezVJ8kL1bUK1FX3RMGMlrBLpOFkzfJ+lI/4U5m+W7xW+eFdTr6fYZXiannX1H\np1aoIF6EUlcr97JThAFpi1Q=\n-----END PRIVATE KEY-----\n",
+  "private_key_id": "2691df4aed99f9a9340174c9fb530ff6a6efde04",
+  "project_id": "mealhow",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "type": "service_account",
+  "universe_domain": "googleapis.com"
+}
