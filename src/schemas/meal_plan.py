@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from mealhow_sdk import enums
 from pydantic import BaseModel
 
@@ -46,4 +44,3 @@ class MealPlan(BaseModel):
     key: int
     status: enums.MealPlanStatus
     details: MealPlanDetails | None
-    created_at: datetime

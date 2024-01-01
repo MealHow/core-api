@@ -44,9 +44,6 @@ async def create_meal_plan(
 )
 async def get_current_meal_plan(request: Request) -> MealPlan:
     meal_plan = await get_current_meal_plan_from_db(request.state.user_id)
-    if not meal_plan:
-        raise custom_exceptions.NotFoundException("Meal plan not found")
-
     return MealPlan(**meal_plan.to_dict())
 
 

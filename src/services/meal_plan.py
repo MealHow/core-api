@@ -8,6 +8,7 @@ from google.cloud import ndb
 from mealhow_sdk import enums
 from mealhow_sdk.datastore_models import MealPlan, User
 
+from core import custom_exceptions
 from core.config import get_settings
 from core.custom_exceptions import CreateMealPlanTimeoutException
 from schemas.user import PatchPersonalInfo
@@ -30,7 +31,7 @@ async def get_in_progress_meal_plan_from_db(user_id: str) -> MealPlan:
 
 
 async def get_current_meal_plan_from_db(user_id: str) -> MealPlan:
-    return (
+    meal_plan = (
         MealPlan.query()
         .filter(
             ndb.AND(
@@ -44,6 +45,11 @@ async def get_current_meal_plan_from_db(user_id: str) -> MealPlan:
         )
         .get()
     )
+
+    if not meal_plan:
+        raise custom_exceptions.NotFoundException("Meal plan not found")
+
+    return meal_plan
 
 
 async def get_archived_meal_plans_from_db(user_id: str) -> list[MealPlan]:

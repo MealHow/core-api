@@ -32,4 +32,4 @@ EXPOSE 80
 
 RUN chmod 777 scripts/run
 
-CMD ["/bin/bash", "scripts/run"]
+CMD exec uvicorn main:app --host 0.0.0.0 --port ${PORT} --workers 1
