@@ -53,7 +53,7 @@ uvicorn = "^0.25.0"
 pydantic-settings = "^2.1.0"
 python-multipart = "^0.0.6"
 async-stripe = "^6.1.0"
-mealhow-sdk = {version = "0.2.6", source = "mealhow-python"}
+mealhow-sdk = {version = "0.2.8", source = "mealhow-python"}
 asyncio = "^3.4.3"
 pycountry = "^23.12.11"
 timezonefinder = "^6.2.0"

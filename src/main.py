@@ -172,7 +172,7 @@ app.include_router(
 app.include_router(
     meal_plan.router,
     prefix=f"{settings.API_V1_PREFIX}/meal-plans",
-    tags=["Meal plans"],
+    tags=["Meal Plans"],
 )
 app.include_router(
     subscription.router,
@@ -182,7 +182,7 @@ app.include_router(
 app.include_router(
     shopping_list.router,
     prefix=f"{settings.API_V1_PREFIX}/shopping-lists",
-    tags=["Shopping lists"],
+    tags=["Shopping Lists"],
 )
 
 if __name__ == "__main__":
