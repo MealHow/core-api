@@ -25,6 +25,8 @@ WORKDIR /app
 RUN poetry self add "keyrings.google-artifactregistry-auth"
 RUN poetry install --no-interaction --no-ansi --no-root
 
+COPY ./poetry.lock /app/poetry.lock
+COPY ./pyproject.toml /app/pyproject.toml
 COPY /src /app
 
 EXPOSE 80
