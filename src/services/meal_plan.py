@@ -46,6 +46,20 @@ async def get_current_meal_plan_from_db(user_id: str) -> MealPlan:
     )
 
 
+async def get_archived_meal_plans_from_db(user_id: str) -> list[MealPlan]:
+    return (
+        MealPlan.query()
+        .filter(
+            ndb.AND(
+                MealPlan.user == ndb.Key(User, user_id),
+                MealPlan.status == enums.MealPlanStatus.archived.name,
+            )
+        )
+        .order(-MealPlan.created_at)
+        .fetch()
+    )
+
+
 async def request_new_meal_plan(request: Request) -> str:
     topic = "projects/{project_id}/topics/{topic}".format(
         project_id=settings.PROJECT_ID,

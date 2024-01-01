@@ -7,4 +7,4 @@ settings = get_settings()
 
 cloud_storage_session = CloudStorage()
 pubsub_publisher = pubsub_v1.PublisherClient()
-ndb_client = ndb.Client(project=settings.PROJECT_ID, database=settings.DATASTORE_DB)
+ndb_client = ndb.Client(project=settings.PROJECT_ID)

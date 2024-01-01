@@ -6,6 +6,7 @@ from core.dependencies import create_ndb_context
 from schemas.exception import ExceptionResponse
 from schemas.meal_plan import CreateMealPlanResponse, MealPlan
 from services.meal_plan import (
+    get_archived_meal_plans_from_db,
     get_current_meal_plan_from_db,
     get_in_progress_meal_plan_from_db,
     request_new_meal_plan,
@@ -47,3 +48,14 @@ async def get_current_meal_plan(request: Request) -> MealPlan:
         raise custom_exceptions.NotFoundException("Meal plan not found")
 
     return MealPlan(**meal_plan.to_dict())
+
+
+@router.get(
+    "/archived",
+    status_code=status.HTTP_200_OK,
+    response_model=list[MealPlan],
+    dependencies=[Depends(create_ndb_context)],
+)
+async def get_archived_meal_plans(request: Request) -> list[MealPlan]:
+    meal_plans = await get_archived_meal_plans_from_db(request.state.user_id)
+    return [MealPlan(**meal_plan.to_dict()) for meal_plan in meal_plans]
