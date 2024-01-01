@@ -1,12 +1,16 @@
 import asyncio
+import datetime
 import json
 
+from dateutil.relativedelta import relativedelta
 from fastapi import Request
 from google.cloud import ndb
 from mealhow_sdk import enums
 from mealhow_sdk.datastore_models import MealPlan, User
 
 from core.config import get_settings
+from schemas.user import PatchPersonalInfo
+from services.user import get_bmr_and_total_calories_goal
 
 settings = get_settings()
 
@@ -30,15 +34,32 @@ async def request_new_meal_plan(request: Request) -> str:
         topic=settings.PUBSUB_MEAL_PLAN_EVENT_TOPIC_ID,
     )
 
-    # TODO: Calculate new calories goal and user's age
+    user_id = request.state.user_id
+    user = User.get_by_id(user_id)
 
-    input_data = {"user_id": request.state.user_id}
-    data = json.dumps(input_data).encode("utf-8")
+    current_weight = sorted(user.current_weight, key=lambda x: x.created_at, reverse=True)[0]
+    bmr, calories_goal = await get_bmr_and_total_calories_goal(
+        {
+            "current_weight_kg": current_weight.weight_kg,
+            "height_cm": user.height_cm,
+        },
+        PatchPersonalInfo(
+            activity_level=user.activity_level,
+            goal=user.goal,
+            biological_sex=user.biological_sex,
+            age=relativedelta(datetime.datetime.now(), user.birth_year).years,
+        ),
+    )
+    user.bmr = bmr
+    user.calories_goal = calories_goal
+    user.put()
+
+    data = json.dumps({"user_id": user_id}).encode("utf-8")
     request.state.pubsub_publisher.publish(topic, data)
 
     meal_plan = None
     while not meal_plan:
         await asyncio.sleep(1)
-        meal_plan = await get_in_progress_meal_plan(request.state.user_id)
+        meal_plan = await get_in_progress_meal_plan(user_id)
 
     return meal_plan.key.id()
