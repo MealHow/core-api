@@ -26,6 +26,6 @@ COPY . /app
 
 EXPOSE 80
 
-RUN chmod 777 scripts/run
+WORKDIR /app/src
 
-CMD exec uvicorn main:app --host 0.0.0.0 --port ${PORT} --workers 1
+CMD exec poetry run uvicorn main:app --host 0.0.0.0 --port ${PORT} --workers 1
