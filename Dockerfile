@@ -16,6 +16,8 @@ RUN pip install -U pip \
     pip install poetry==$POETRY_VERSION
 RUN poetry config virtualenvs.create false
 
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/gcp_service_account
+
 COPY poetry.lock pyproject.toml /app/
 WORKDIR /app
 
