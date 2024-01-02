@@ -1,10 +1,16 @@
+import asyncio
 import datetime
 from typing import Any
 
+from auth0 import Auth0Error
+from auth0.authentication import Users
+from auth0.management import Auth0
 from dateutil.relativedelta import relativedelta
+from fastapi import HTTPException, Request
 from mealhow_sdk import datastore_models, enums, helpers
 from mealhow_sdk.datastore_models import User
 
+from core import custom_exceptions
 from core.config import get_settings
 from schemas.user import PatchPersonalInfo, PersonalInfo
 
@@ -159,3 +165,41 @@ async def update_user_personal_info(user_id: str, data: dict[str, Any]) -> dict[
 
     user_key = user.put()
     return await get_user_personal_info_model_to_dict(user_key.get())
+
+
+async def create_reset_password_request(request: Request, auth0_mgmt_client: Auth0, auth0_users: Users) -> None:
+    # TODO: fix this
+    try:
+        user_info = await auth0_users.userinfo_async(access_token=request.state.access_token)
+        await auth0_mgmt_client.tickets.create_pswd_change_async(
+            body={
+                "result_url": "https://app.mealhow.ai/",
+                "user_id": request.state.user_id,
+                "client_id": settings.AUTH0_APPLICATION_CLIENT_ID,
+                "connection_id": settings.AUTH0_DEFAULT_DB_CONNECTION,
+                "email": user_info["email"],
+                "ttl_sec": 0,
+                "mark_email_as_verified": False,
+                "includeEmailInRedirect": True,
+            }
+        )
+    except Auth0Error as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+async def get_profile_info_from_db_and_auth0(request: Request, auth0_users: Users) -> dict[str, Any]:
+    try:
+        async with asyncio.TaskGroup() as group:
+            auth0_account_task = group.create_task(auth0_users.userinfo_async(access_token=request.state.access_token))
+            personal_info_task = group.create_task(get_user_personal_info_from_db(request.state.user_id))
+
+        personal_info = personal_info_task.result()
+        if not personal_info:
+            raise custom_exceptions.NotFoundException("User not found")
+
+        return {
+            "auth0_account": auth0_account_task.result(),
+            "personal_info": personal_info,
+        }
+    except Auth0Error as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)

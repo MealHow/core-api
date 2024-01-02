@@ -1,5 +1,3 @@
-import asyncio
-
 from auth0.authentication import Users
 from auth0.exceptions import Auth0Error
 from auth0.management import Auth0
@@ -20,7 +18,11 @@ from schemas.user import (
     PersonalInfo,
     Profile,
 )
-from services.user import get_user_personal_info_from_db, update_user_personal_info
+from services.user import (
+    create_reset_password_request,
+    get_profile_info_from_db_and_auth0,
+    update_user_personal_info,
+)
 
 router = APIRouter()
 
@@ -35,21 +37,11 @@ settings: Settings = get_settings()
     dependencies=[Depends(create_ndb_context)],
 )
 async def get_profile_info(request: Request, auth0_users: Users = Depends(get_auth0_users_client)) -> Profile:
-    try:
-        async with asyncio.TaskGroup() as group:
-            auth0_account = group.create_task(auth0_users.userinfo_async(access_token=request.state.access_token))
-            personal_info = group.create_task(get_user_personal_info_from_db(request.state.user_id))
-
-        personal_info = personal_info.result()
-        if not personal_info:
-            raise custom_exceptions.NotFoundException("User not found")
-
-        return Profile(
-            auth0_account=Auth0AccountInfo(**auth0_account.result()),
-            personal_info=PersonalInfo(**personal_info),
-        )
-    except Auth0Error as e:
-        raise HTTPException(status_code=e.status_code, detail=e.message)
+    response = await get_profile_info_from_db_and_auth0(request, auth0_users)
+    return Profile(
+        auth0_account=Auth0AccountInfo(**response["auth0_account"]),
+        personal_info=PersonalInfo(**response["personal_info"]),
+    )
 
 
 @router.patch(
@@ -92,20 +84,4 @@ async def send_reset_password_link_to_email(
     auth0_users: Users = Depends(get_auth0_users_client),
     auth0_mgmt_client: Auth0 = Depends(get_auth0_management_client),
 ) -> None:
-    # TODO: fix this
-    try:
-        user_info = await auth0_users.userinfo_async(access_token=request.state.access_token)
-        await auth0_mgmt_client.tickets.create_pswd_change_async(
-            body={
-                "result_url": "https://app.mealhow.ai/",
-                "user_id": request.state.user_id,
-                "client_id": settings.AUTH0_APPLICATION_CLIENT_ID,
-                "connection_id": settings.AUTH0_DEFAULT_DB_CONNECTION,
-                "email": user_info["email"],
-                "ttl_sec": 0,
-                "mark_email_as_verified": False,
-                "includeEmailInRedirect": True,
-            }
-        )
-    except Auth0Error as e:
-        raise HTTPException(status_code=e.status_code, detail=e.message)
+    await create_reset_password_request(request, auth0_mgmt_client, auth0_users)
