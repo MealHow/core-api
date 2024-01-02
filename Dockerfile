@@ -31,8 +31,8 @@ RUN pip install --upgrade pip
 RUN pip install keyrings.google-artifactregistry-auth
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./src ./app
+COPY ./src ./
 
 ENV PORT 1234
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "${PORT}", "--workers", "1"]
+CMD exec uvicorn main:app --host 0.0.0.0 --port ${PORT} --workers 1 --proxy-headers
