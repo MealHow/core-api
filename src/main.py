@@ -149,7 +149,7 @@ async def get_glb_headers(request: Request) -> dict[str, str]:
         "client_protocol": request.headers.get(settings.CLIENT_PROTOCOL_HEADER),
         "country_iso_code": request.headers.get(settings.CLIENT_COUNTRY_HEADER),
         "subdivision_iso_code": request.headers.get(settings.CLIENT_COUNTRY_SUBDIVISION_HEADER),
-        "location": request.headers.get(settings.CLIENT_LAT_LONG_HEADER).split(","),
+        "location": request.headers.get(settings.CLIENT_LAT_LONG_HEADER),
     }
 
 
