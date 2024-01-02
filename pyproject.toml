@@ -41,7 +41,6 @@ auth0-python = "4.7.0"
 pydantic = {extras = ["email"], version = "^2.5.3"}
 secure = "^0.3.0"
 elastic-apm = "^6.19.0"
-pre-commit = "^3.6.0"
 aiohttp = "^3.9.1"
 gcloud-aio-storage = "^9.0.0"
 google-cloud-pubsub = "^2.19.0"
@@ -63,7 +62,7 @@ python-dateutil = "^2.8.2"
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
 pylint = "^2.15.9"
-pre-commit = "^3.6.0"
+pre-commit = "3.6.0"
 flake8 = "6.1.0"
 flake8-broken-line = "1.0.0"
 flake8-bugbear = "23.12.2"
@@ -86,6 +85,7 @@ isort = "^5.13.2"
 setuptools = "^69.0.3"
 build = "^1.0.3"
 twine = "^4.0.2"
+poetry-plugin-export = "^1.6.0"
 
 
 [[tool.poetry.source]]

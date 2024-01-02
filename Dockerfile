@@ -1,4 +1,14 @@
-FROM python:3.12-slim
+FROM python:3.12 AS requirements-stage
+
+WORKDIR /tmp
+
+RUN pip install poetry
+
+COPY ./pyproject.toml ./poetry.lock* /tmp/
+
+RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+FROM python:3.12
 LABEL maintainer="Vitalii Vinnychenko <vitalii@mealhow.ai>"
 
 # Keeps Python from generating .pyc files in the container
@@ -7,28 +17,22 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED 1
 
-ENV POETRY_VERSION=1.7.0
 RUN apt-get update && \
     apt-get -y install --no-install-recommends gcc mono-mcs libffi-dev build-essential && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install -U pip \
-    pip install poetry==$POETRY_VERSION
-RUN poetry config virtualenvs.create false
-
 COPY ./sa.json /tmp/sa-artifact-registry.json
 ENV GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa-artifact-registry.json
 
-COPY poetry.lock pyproject.toml /app/
-WORKDIR /app
+WORKDIR /code
 
-RUN poetry self add "keyrings.google-artifactregistry-auth"
-RUN poetry install --no-interaction --no-ansi --no-root
+COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
+RUN pip install --upgrade pip
+RUN pip install keyrings.google-artifactregistry-auth
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./poetry.lock /app/poetry.lock
-COPY ./pyproject.toml /app/pyproject.toml
-COPY /src /app
+COPY ./src ./app
 
-EXPOSE 80
+ENV PORT 1234
 
-CMD exec poetry run uvicorn main:app --host 0.0.0.0 --port ${PORT} --workers 1
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "${PORT}", "--workers", "1"]
