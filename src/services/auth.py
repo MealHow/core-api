@@ -28,14 +28,23 @@ async def extract_data_from_headers(request: Request) -> dict[str, Any]:
     country_iso_code = request.headers.get(settings.CLIENT_COUNTRY_HEADER)
     subdivision_iso_code = request.headers.get(settings.CLIENT_COUNTRY_SUBDIVISION_HEADER)
     location = request.headers.get(settings.CLIENT_LAT_LONG_HEADER).split(",")
+
+    try:
+        subdivision = pycountry.subdivisions.get(code=subdivision_iso_code).name
+    except AttributeError:
+        subdivision = subdivision_iso_code
+
+    try:
+        country = pycountry.countries.get(alpha_2=country_iso_code).name
+    except AttributeError:
+        country = country_iso_code
+
     return {
         "cdn_cache_id": request.headers.get(settings.CLIENT_CDN_CACHE_ID_HEADER),
         "client_protocol": request.headers.get(settings.CLIENT_PROTOCOL_HEADER),
         "timezone": tf.timezone_at(lat=float(location[0].strip()), lng=float(location[1].strip())),
-        "country": pycountry.countries.get(alpha_2=country_iso_code).name if country_iso_code else None,
-        "country_subdivision": pycountry.subdivisions.get(code=subdivision_iso_code).name
-        if subdivision_iso_code
-        else None,
+        "country": country if country_iso_code else None,
+        "country_subdivision": subdivision if subdivision_iso_code else None,
     }
 
 
