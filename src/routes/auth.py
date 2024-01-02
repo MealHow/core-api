@@ -1,6 +1,8 @@
+from typing import Any
+
 from auth0.authentication import GetToken
 from auth0.management import Auth0
-from fastapi import APIRouter, Depends, Request, Response, status
+from fastapi import APIRouter, Depends, Request, status
 
 from core.config import get_settings, Settings
 from core.dependencies import (
@@ -41,7 +43,7 @@ async def login_for_access_token(
 async def login_callback(
     code: str,
     auth0_token: GetToken = Depends(get_auth0_token_client),
-) -> Response:
+) -> dict[str, Any]:
     return await get_callback_response(auth0_token, code)
 
 
@@ -57,5 +59,5 @@ async def create_new_user(
     auth0_mgmt_client: Auth0 = Depends(get_auth0_management_client),
     auth0_token: GetToken = Depends(get_auth0_token_client),
 ) -> AccessToken:
-    response = await create_user_in_db_and_auth0(request, auth0_mgmt_client, auth0_token)
+    response = await create_user_in_db_and_auth0(request, auth0_mgmt_client, auth0_token, create_user)
     return AccessToken(access_token=response["access_token"])
