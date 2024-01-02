@@ -21,7 +21,6 @@ class Settings(BaseSettings):
     WHITELISTED_PATHS: set[str] = {
         "/docs",
         "/status",
-        "/headers",
         "/error",
         "/openapi.json",
     }

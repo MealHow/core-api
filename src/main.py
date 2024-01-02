@@ -138,19 +138,8 @@ async def client_middleware(request: Request, call_next: Callable) -> Response:
 
 
 @app.get("/status", status_code=status.HTTP_200_OK, operation_id="status_200")
-async def get_status(request: Request) -> dict[str, Literal[True]]:
+async def get_status() -> dict[str, Literal[True]]:
     return {"healthy": True}
-
-
-@app.get("/headers", status_code=status.HTTP_200_OK)
-async def get_glb_headers(request: Request) -> dict[str, str]:
-    return {
-        "cdn_cache_id": request.headers.get(settings.CLIENT_CDN_CACHE_ID_HEADER),
-        "client_protocol": request.headers.get(settings.CLIENT_PROTOCOL_HEADER),
-        "country_iso_code": request.headers.get(settings.CLIENT_COUNTRY_HEADER),
-        "subdivision_iso_code": request.headers.get(settings.CLIENT_COUNTRY_SUBDIVISION_HEADER),
-        "location": request.headers.get(settings.CLIENT_LAT_LONG_HEADER),
-    }
 
 
 @app.get(
