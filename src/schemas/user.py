@@ -28,20 +28,6 @@ class NewUserPassword(BaseModel):
     password: str
 
 
-class Auth0AccountBase(BaseModel):
-    name: str
-    email: EmailStr
-    email_verified: typing.Optional[bool] = False
-    nickname: typing.Optional[str] = None
-
-
-class Auth0AccountInfo(Auth0AccountBase):
-    picture: str
-    updated_at: str
-    sub: str
-    email_verified: bool
-
-
 class PersonalInfo(BaseModel):
     age: int
     biological_sex: BiologicalSex
@@ -76,12 +62,17 @@ class PatchPersonalInfo(BaseModel):
 
 
 class Profile(BaseModel):
+    name: str
+    email: EmailStr
     personal_info: PersonalInfo
-    auth0_account: Auth0AccountInfo
 
 
-class CreateUser(Auth0AccountBase):
+class CreateUser(BaseModel):
     connection: str = settings.AUTH0_DEFAULT_DB_CONNECTION
+    name: str
+    email: EmailStr
+    email_verified: typing.Optional[bool] = False
+    nickname: typing.Optional[str] = None
     password: str
     verify_email: bool = True
     personal_info: PersonalInfo

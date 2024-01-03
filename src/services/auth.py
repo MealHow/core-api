@@ -3,7 +3,7 @@ from typing import Any
 
 import pycountry
 from auth0 import Auth0Error
-from auth0.authentication import GetToken
+from auth0.authentication import Database, GetToken
 from auth0.management import Auth0
 from dateutil.relativedelta import relativedelta
 from fastapi import HTTPException, Request
@@ -48,13 +48,16 @@ async def extract_data_from_headers(request: Request) -> dict[str, Any]:
     }
 
 
-async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id: str, stripe_customer_id: str) -> None:
+async def create_user_db_entity(
+    request: Request, user_obj: CreateUser, auth0_user_obj: dict[str, Any], stripe_customer_id: str
+) -> None:
     body_params = await calculate_weight_and_height(user_obj.personal_info)
     bmr, calories_goal = await get_bmr_and_total_calories_goal(body_params, user_obj.personal_info)
 
-    key = ndb.Key(datastore_models.User, user_id)
+    key = ndb.Key(datastore_models.User, auth0_user_obj["user_id"])
     user_entity = datastore_models.User(
         key=key,
+        name=auth0_user_obj["name"],
         email=user_obj.email,
         goal=user_obj.personal_info.goal,
         birth_year=datetime.datetime.now() - relativedelta(years=int(user_obj.personal_info.age)),
@@ -74,6 +77,7 @@ async def create_user_db_entity(request: Request, user_obj: CreateUser, user_id:
         calories_goal=calories_goal,
         stripe_customer_id=stripe_customer_id,
         platform=user_obj.personal_info.platform,
+        updated_at=datetime.datetime.now(),
         **(await extract_data_from_headers(request)),
     )
     user_entity.put()
@@ -90,7 +94,7 @@ async def create_user_in_db_and_auth0(
 
         new_user_auth0_obj = await auth0_mgmt_client.users.create_async(body=new_user_body)
         customer = await create_new_customer(create_user.email, create_user.name)
-        await create_user_db_entity(request, create_user, new_user_auth0_obj["user_id"], customer["id"])
+        await create_user_db_entity(request, create_user, new_user_auth0_obj, customer["id"])
 
         # Get access token for new user
         return await auth0_token.login_async(

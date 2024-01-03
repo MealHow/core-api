@@ -57,6 +57,14 @@ async def get_auth0_management_client() -> management.Auth0:
     )
 
 
+async def get_auth0_database_client() -> authentication.Database:
+    return authentication.Database(
+        domain=settings.AUTH0_DOMAIN,
+        client_id=settings.AUTH0_APPLICATION_CLIENT_ID,
+        client_secret=settings.AUTH0_APPLICATION_CLIENT_SECRET,
+    )
+
+
 async def create_ndb_context() -> AsyncGenerator:
     with ndb_client.context():
         yield

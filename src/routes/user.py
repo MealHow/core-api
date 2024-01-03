@@ -1,4 +1,4 @@
-from auth0.authentication import Users
+from auth0.authentication import Database
 from auth0.exceptions import Auth0Error
 from auth0.management import Auth0
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -7,20 +7,14 @@ from core import custom_exceptions
 from core.config import get_settings, Settings
 from core.dependencies import (
     create_ndb_context,
+    get_auth0_database_client,
     get_auth0_management_client,
-    get_auth0_users_client,
 )
 from schemas.exception import ExceptionResponse
-from schemas.user import (
-    Auth0AccountInfo,
-    NewUserPassword,
-    PatchPersonalInfo,
-    PersonalInfo,
-    Profile,
-)
+from schemas.user import NewUserPassword, PatchPersonalInfo, PersonalInfo, Profile
 from services.user import (
     create_reset_password_request,
-    get_profile_info_from_db_and_auth0,
+    get_user_personal_info_from_db,
     update_user_personal_info,
 )
 
@@ -36,10 +30,14 @@ settings: Settings = get_settings()
     responses={404: {"model": ExceptionResponse, "description": "User not found"}},
     dependencies=[Depends(create_ndb_context)],
 )
-async def get_profile_info(request: Request, auth0_users: Users = Depends(get_auth0_users_client)) -> Profile:
-    response = await get_profile_info_from_db_and_auth0(request, auth0_users)
+async def get_profile_info(request: Request) -> Profile:
+    response = await get_user_personal_info_from_db(request.state.user_id)
+    if not response:
+        raise custom_exceptions.NotFoundException("User not found")
+
     return Profile(
-        auth0_account=Auth0AccountInfo(**response["auth0_account"]),
+        email=response["email"],
+        name=response["name"],
         personal_info=PersonalInfo(**response["personal_info"]),
     )
 
@@ -78,10 +76,10 @@ async def update_user_password(
 @router.post(
     "/password/reset",
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(create_ndb_context)],
 )
 async def send_reset_password_link_to_email(
     request: Request,
-    auth0_users: Users = Depends(get_auth0_users_client),
-    auth0_mgmt_client: Auth0 = Depends(get_auth0_management_client),
+    auth0_database_client: Database = Depends(get_auth0_database_client),
 ) -> None:
-    await create_reset_password_request(request, auth0_mgmt_client, auth0_users)
+    await create_reset_password_request(request, auth0_database_client)
