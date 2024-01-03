@@ -1896,13 +1896,13 @@ files = [
 
 [[package]]
 name = "mealhow-sdk"
-version = "0.2.10"
+version = "0.2.12"
 description = ""
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "mealhow_sdk-0.2.10-py3-none-any.whl", hash = "sha256:261b192f5cfb8ceac4835e393b36871d00072944ffd7fc8cd6c02276311de767"},
-    {file = "mealhow_sdk-0.2.10.tar.gz", hash = "sha256:632d4941cad6efc7a03515f67be957f797394c7d30c391ff28b5a5653912007a"},
+    {file = "mealhow_sdk-0.2.12-py3-none-any.whl", hash = "sha256:df77a6f1eb101be8a0a6400df1d5eb74ed5fd1b2aa8a6aab1908d41168db2741"},
+    {file = "mealhow_sdk-0.2.12.tar.gz", hash = "sha256:916a38f9138095f3a09347625be0efb0ad4a0b9aaaa13308e77f22773a015e77"},
 ]
 
 [package.dependencies]
@@ -3705,4 +3705,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4"
-content-hash = "e3508167d9fff57b64c3f35b1db1f5bfc9b0c58f279e42a612cbcba789dcb050"
+content-hash = "eb318b972035edf97bc79b0620a9d04e0c3c3485cb570935c8a8b018e39e5c3d"

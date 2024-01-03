@@ -1,3 +1,4 @@
+from mealhow_sdk import enums
 from pydantic import BaseModel
 
 
@@ -17,6 +18,7 @@ class MealRecipe(BaseModel):
 class Meal(BaseModel):
     key: str
     full_name: str
+    recipe_status: enums.JobStatus | None
     calories: int
     protein: int
     carbs: int

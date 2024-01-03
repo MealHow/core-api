@@ -1,3 +1,4 @@
+from mealhow_sdk import enums
 from pydantic import BaseModel
 
 
@@ -9,6 +10,7 @@ class ShoppingListItem(BaseModel):
 class ShoppingList(BaseModel):
     key: int
     name: str
+    status: enums.JobStatus
 
 
 class ShoppingListWithCount(ShoppingList):

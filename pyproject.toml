@@ -56,7 +56,7 @@ asyncio = "^3.4.3"
 pycountry = "^23.12.11"
 timezonefinder = "^6.2.0"
 python-dateutil = "^2.8.2"
-mealhow-sdk = {version = "0.2.10", source = "mealhow-python"}
+mealhow-sdk = {version = "0.2.12", source = "mealhow-python"}
 
 
 [tool.poetry.group.dev.dependencies]

@@ -55,11 +55,12 @@ async def delete_favorite_meal(request: Request, key: str) -> None:
     responses={404: {"model": ExceptionResponse, "description": "Meal not found"}},
     dependencies=[Depends(create_ndb_context)],
 )
-async def get_meal_by_key(key: str) -> MealResponse:
+async def get_meal_by_key(request: Request, key: str) -> MealResponse:
     meal_entity = await get_meal_from_db_by_key(key)
 
+    print(meal_entity)
     if not meal_entity.recipe and meal_entity.preparation_time > 2:
-        meal_entity = await create_and_save_meal_recipe(meal_entity)
+        meal_entity = await create_and_save_meal_recipe(request, meal_entity)
 
     meal = meal_entity.to_dict()
     meal["image"] = meal_entity.image.get().to_dict()

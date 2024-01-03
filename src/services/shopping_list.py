@@ -1,8 +1,10 @@
 import datetime
+import json
 from typing import Any
 
+from fastapi import Request
 from google.cloud import ndb
-from mealhow_sdk import external_api, parsers, prompt_templates
+from mealhow_sdk import external_api, parsers, prompt_templates, enums
 from mealhow_sdk.datastore_models import Meal, ShoppingList, ShoppingListItem, User
 
 from core import custom_exceptions
@@ -51,24 +53,28 @@ async def delete_shopping_list_from_db(user_id: str, key: int) -> None:
     shopping_list.put()
 
 
-async def create_new_shopping_list_in_db(user_id: str, data: ShoppingListRequest) -> ShoppingList:
+async def create_new_shopping_list_in_db(request: Request, data: ShoppingListRequest) -> ShoppingList:
     meal_keys = [ndb.Key(Meal, meal_id) for meal_id in data.meal_ids]
-    meals = ndb.get_multi(meal_keys)
-    meals_list_text = "\n".join([f"- {meal.full_name} ({meal.calories} calories)" for meal in meals])
-
-    response = await external_api.openai_get_gpt_response(
-        model=settings.OPENAI_GPT_MODEL_VERSION,
-        text_request=prompt_templates.SHOPPING_LIST_REQUEST.format(meals_list=meals_list_text),
-    )
-    parsed_shopping_list = await parsers.parse_shopping_list(response)
     shopping_list = ShoppingList(
-        user=ndb.Key(User, user_id),
+        user=ndb.Key(User, request.state.user_id),
         name=data.name.strip().lower(),
         linked_meals=meal_keys,
-        items=[ShoppingListItem(name=item["product_name"], quantity=item["quantity"]) for item in parsed_shopping_list],
+        status=enums.JobStatus.in_progress.name,
     )
     shopping_list_key = shopping_list.put()
-    return shopping_list_key.get()
+    shopping_list_entity = shopping_list_key.get()
+
+    topic = "projects/{project_id}/topics/{topic}".format(
+        project_id=settings.PROJECT_ID,
+        topic=settings.PUBSUB_SHOPPING_LIST_EVENT_TOPIC_ID,
+    )
+    event_body = json.dumps({
+        "shopping_list_id": shopping_list_entity.key.id(),
+        "meal_ids": data.meal_ids,
+    }).encode("utf-8")
+    request.state.pubsub_publisher.publish(topic, event_body)
+
+    return shopping_list_entity
 
 
 async def get_linked_meals_to_shopping_list_from_db(user_id: str, key: int) -> list[dict[str, Any]]:

@@ -45,7 +45,7 @@ async def get_shopping_lists(request: Request) -> list[ShoppingListWithCount]:
     dependencies=[Depends(create_ndb_context)],
 )
 async def create_shopping_list(request: Request, data: ShoppingListRequest) -> ShoppingListWithItems:
-    shopping_list = await create_new_shopping_list_in_db(request.state.user_id, data)
+    shopping_list = await create_new_shopping_list_in_db(request, data)
     return ShoppingListWithItems(**shopping_list.to_dict())
 
 

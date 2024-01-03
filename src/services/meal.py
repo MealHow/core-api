@@ -1,9 +1,10 @@
 import datetime
+import json
 from typing import Any
 
+from fastapi import Request
 from google.cloud import ndb
-from mealhow_sdk import external_api, prompt_templates
-from mealhow_sdk.datastore_models import FavoriteMeal, Meal, MealImage, MealRecipe, User
+from mealhow_sdk.datastore_models import FavoriteMeal, Meal, MealImage, User
 
 from core import custom_exceptions
 from core.config import get_settings
@@ -19,20 +20,13 @@ async def get_meal_from_db_by_key(key: str) -> Meal:
     return meal
 
 
-async def create_and_save_meal_recipe(meal: Meal) -> Meal:
-    response = await external_api.openai_get_gpt_response(
-        model=settings.OPENAI_GPT_MODEL_VERSION,
-        text_request=prompt_templates.MEAL_RECIPE_REQUEST.format(
-            meal=f"{meal.full_name} ({meal.calories} calories)",
-        ),
+async def create_and_save_meal_recipe(request: Request, meal: Meal) -> None:
+    topic = "projects/{project_id}/topics/{topic}".format(
+        project_id=settings.PROJECT_ID,
+        topic=settings.PUBSUB_MEAL_RECIPE_EVENT_TOPIC_ID,
     )
-
-    recipe = MealRecipe(recipe=response)
-    recipe_key = recipe.put()
-
-    meal.recipe = recipe_key
-    meal_key = meal.put()
-    return meal_key.get()
+    event_body = json.dumps({"meal_id": meal.key.id()}).encode("utf-8")
+    request.state.pubsub_publisher.publish(topic, event_body)
 
 
 async def create_image_artifact_report(key: str) -> None:

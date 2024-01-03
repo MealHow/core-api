@@ -61,6 +61,8 @@ class Settings(BaseSettings):
     PROJECT_ID: str
     GCS_MEAL_IMAGES_BUCKET: str | None = None
     PUBSUB_MEAL_PLAN_EVENT_TOPIC_ID: str
+    PUBSUB_SHOPPING_LIST_EVENT_TOPIC_ID: str
+    PUBSUB_MEAL_RECIPE_EVENT_TOPIC_ID: str
 
     # OpenAI
     OPENAI_API_KEY: str
