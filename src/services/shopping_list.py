@@ -4,8 +4,8 @@ from typing import Any
 
 from fastapi import Request
 from google.cloud import ndb
-from mealhow_sdk import enums, external_api, parsers, prompt_templates
-from mealhow_sdk.datastore_models import Meal, ShoppingList, ShoppingListItem, User
+from mealhow_sdk import enums
+from mealhow_sdk.datastore_models import Meal, ShoppingList, User
 
 from core import custom_exceptions
 from core.config import get_settings

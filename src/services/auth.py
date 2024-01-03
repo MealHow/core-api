@@ -3,7 +3,7 @@ from typing import Any
 
 import pycountry
 from auth0 import Auth0Error
-from auth0.authentication import Database, GetToken
+from auth0.authentication import GetToken
 from auth0.management import Auth0
 from dateutil.relativedelta import relativedelta
 from fastapi import HTTPException, Request

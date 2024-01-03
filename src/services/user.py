@@ -2,14 +2,12 @@ import datetime
 from typing import Any
 
 from auth0 import Auth0Error
-from auth0.authentication import Database, Users
-from auth0.management import Auth0
+from auth0.authentication import Database
 from dateutil.relativedelta import relativedelta
 from fastapi import HTTPException, Request
 from mealhow_sdk import datastore_models, enums, helpers
 from mealhow_sdk.datastore_models import User
 
-from core import custom_exceptions
 from core.config import get_settings
 from schemas.user import PatchPersonalInfo, PersonalInfo
 

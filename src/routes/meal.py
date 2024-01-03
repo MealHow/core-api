@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Request, status
+from mealhow_sdk import enums
 
 from core.config import get_settings, Settings
 from core.dependencies import create_ndb_context
@@ -58,9 +59,12 @@ async def delete_favorite_meal(request: Request, key: str) -> None:
 async def get_meal_by_key(request: Request, key: str) -> MealResponse:
     meal_entity = await get_meal_from_db_by_key(key)
 
-    print(meal_entity)
-    if not meal_entity.recipe and meal_entity.preparation_time > 2:
-        meal_entity = await create_and_save_meal_recipe(request, meal_entity)
+    if (
+        not meal_entity.recipe
+        and meal_entity.recipe_status != enums.JobStatus.in_progress.name
+        and meal_entity.preparation_time > 2
+    ):
+        await create_and_save_meal_recipe(request, meal_entity)
 
     meal = meal_entity.to_dict()
     meal["image"] = meal_entity.image.get().to_dict()
