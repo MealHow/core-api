@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi import Request
 from google.cloud import ndb
-from mealhow_sdk import external_api, parsers, prompt_templates, enums
+from mealhow_sdk import enums, external_api, parsers, prompt_templates
 from mealhow_sdk.datastore_models import Meal, ShoppingList, ShoppingListItem, User
 
 from core import custom_exceptions
@@ -68,10 +68,12 @@ async def create_new_shopping_list_in_db(request: Request, data: ShoppingListReq
         project_id=settings.PROJECT_ID,
         topic=settings.PUBSUB_SHOPPING_LIST_EVENT_TOPIC_ID,
     )
-    event_body = json.dumps({
-        "shopping_list_id": shopping_list_entity.key.id(),
-        "meal_ids": data.meal_ids,
-    }).encode("utf-8")
+    event_body = json.dumps(
+        {
+            "shopping_list_id": shopping_list_entity.key.id(),
+            "meal_ids": data.meal_ids,
+        }
+    ).encode("utf-8")
     request.state.pubsub_publisher.publish(topic, event_body)
 
     return shopping_list_entity
