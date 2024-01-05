@@ -105,7 +105,6 @@ async def get_user_personal_info_from_db(user_id: str) -> dict[str, Any] | None:
     return await get_user_personal_info_model_to_dict(user)
 
 
-# TODO: fix this
 async def update_user_personal_info(user_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
     user = User.get_by_id(user_id)
     if not user:

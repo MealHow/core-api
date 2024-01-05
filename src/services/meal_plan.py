@@ -1,18 +1,20 @@
 import asyncio
 import datetime
 import json
+from typing import Any
 
+import mealhow_sdk
 from dateutil.relativedelta import relativedelta
 from fastapi import Request
 from google.cloud import ndb
-from mealhow_sdk import enums
+from mealhow_sdk import enums, prompt_templates
 from mealhow_sdk.datastore_models import MealPlan, User
 
 from core import custom_exceptions
 from core.config import get_settings
 from core.custom_exceptions import CreateMealPlanTimeoutException
-from schemas.user import PatchPersonalInfo
-from services.user import get_bmr_and_total_calories_goal
+from schemas.user import PatchPersonalInfo, PersonalInfo
+from services.user import calculate_weight_and_height, get_bmr_and_total_calories_goal
 
 settings = get_settings()
 
@@ -105,3 +107,29 @@ async def request_new_meal_plan(request: Request) -> str:
             raise CreateMealPlanTimeoutException
 
     return meal_plan.key.id()
+
+
+async def request_meal_plan_preview(data: PersonalInfo) -> dict[int, dict[str, Any]]:
+    body_params = await calculate_weight_and_height(data)
+    _, calories_goal = await get_bmr_and_total_calories_goal(body_params, data)
+    prompt = await mealhow_sdk.get_openai_meal_plan_prompt(
+        mealhow_sdk.MealPlanPromptInputData(
+            calories_goal=calories_goal,
+            protein_goal=data.protein_goal,
+            preparation_time=data.meal_prep_time,
+            preferred_cuisines=data.preferred_cuisines,
+            ingredients_to_avoid=data.avoid_ingredients,
+            health_issues=data.health_conditions,
+        ),
+        base_prompt=prompt_templates.MEAL_PLAN_PREVIEW_BASE_PROMPT,
+    )
+
+    parsed_diet_plans = await mealhow_sdk.request_meal_plans(
+        request_body=prompt,
+        gpt_model=settings.OPENAI_GPT_MODEL_VERSION,
+    )
+    return await mealhow_sdk.compound_most_optimal_meal_plan(
+        diet_plan_variations=parsed_diet_plans,
+        daily_calories_goal=calories_goal,
+        plan_length=1,
+    )

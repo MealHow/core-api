@@ -4,11 +4,13 @@ from core import custom_exceptions
 from core.config import get_settings, Settings
 from core.dependencies import create_ndb_context
 from schemas.exception import ExceptionResponse
-from schemas.meal_plan import CreateMealPlanResponse, MealPlan
+from schemas.meal_plan import CreateMealPlanResponse, MealPlan, MealPlanDayItem
+from schemas.user import PersonalInfo
 from services.meal_plan import (
     get_archived_meal_plans_from_db,
     get_current_meal_plan_from_db,
     get_in_progress_meal_plan_from_db,
+    request_meal_plan_preview,
     request_new_meal_plan,
 )
 
@@ -56,3 +58,14 @@ async def get_current_meal_plan(request: Request) -> MealPlan:
 async def get_archived_meal_plans(request: Request) -> list[MealPlan]:
     meal_plans = await get_archived_meal_plans_from_db(request.state.user_id)
     return [MealPlan(**meal_plan.to_dict()) for meal_plan in meal_plans]
+
+
+@router.post(
+    "/preview",
+    status_code=status.HTTP_200_OK,
+    response_model=MealPlanDayItem,
+    dependencies=[Depends(create_ndb_context)],
+)
+async def create_meal_plan_preview(data: PersonalInfo) -> MealPlanDayItem:
+    res = await request_meal_plan_preview(data)
+    return MealPlanDayItem(**res[1])

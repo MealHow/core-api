@@ -45,17 +45,17 @@ async def get_profile_info(request: Request) -> Profile:
 @router.patch(
     "/profile",
     status_code=status.HTTP_200_OK,
-    response_model=PersonalInfo,
+    response_model=Profile,
     responses={404: {"model": ExceptionResponse, "description": "User not found"}},
     dependencies=[Depends(create_ndb_context)],
 )
-async def patch_user_personal_info(request: Request, personal_info: PatchPersonalInfo) -> PersonalInfo:
+async def patch_user_personal_info(request: Request, personal_info: PatchPersonalInfo) -> Profile:
     updated_personal_info = personal_info.model_dump(exclude_unset=True)
     personal_info = await update_user_personal_info(request.state.user_id, updated_personal_info)
     if not personal_info:
         raise custom_exceptions.NotFoundException("User not found")
 
-    return PersonalInfo(**personal_info)
+    return Profile(**personal_info)
 
 
 @router.put(

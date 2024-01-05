@@ -1,4 +1,3 @@
-import asyncio
 from typing import Any, Callable, Literal
 
 import jwt
@@ -9,7 +8,6 @@ from elasticapm.contrib.starlette import ElasticAPM, make_apm_client
 from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from mealhow_sdk import enums
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from core.auth import get_bearer_token, verify_jwt_token
@@ -24,8 +22,6 @@ from core.helpers import custom_generate_unique_id
 from core.http_client import http_client
 from core.logger import get_logger
 from routes import auth, meal, meal_plan, shopping_list, subscription, user
-from schemas.user import PatchPersonalInfo
-from services.user import get_bmr_and_total_calories_goal
 
 settings: Settings = get_settings()
 logger = get_logger(__name__)

@@ -23,6 +23,7 @@ class Settings(BaseSettings):
         "/status",
         "/error",
         "/openapi.json",
+        "/api/v1/meal-plans/preview",
     }
 
     # Custom headers
