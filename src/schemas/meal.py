@@ -13,7 +13,6 @@ class MealImage(BaseModel):
 
 class MealRecipe(BaseModel):
     text: str
-    ingredients: list[str] | None
 
 
 class Meal(BaseModel):

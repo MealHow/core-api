@@ -88,20 +88,20 @@ async def save_meal_as_favorite_in_db(user_id: str, meal_key: str) -> None:
     favorite_meal.put()
 
 
-async def unmark_meal_as_favorite(user_id: str, meal_key: str) -> None:
-    favorite_meal = (
+async def unmark_meals_as_favorite(user_id: str, meal_keys: list[int]) -> None:
+    favorite_meals = (
         FavoriteMeal.query()
         .filter(
             ndb.AND(
                 FavoriteMeal.user == ndb.Key(User, user_id),
-                FavoriteMeal.meal == ndb.Key(Meal, meal_key),
+                FavoriteMeal.meal.IN([ndb.Key(Meal, meal_key) for meal_key in meal_keys]),
                 FavoriteMeal.deleted_at == None,  # noqa: E711
             )
         )
-        .get()
+        .fetch()
     )
-    if not favorite_meal:
-        raise custom_exceptions.NotFoundException("Meal not found")
 
-    favorite_meal.deleted_at = datetime.datetime.now()
-    favorite_meal.put()
+    for meal in favorite_meals:
+        meal.deleted_at = datetime.datetime.now()
+
+    ndb.put_multi(favorite_meals)

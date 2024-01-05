@@ -5,16 +5,16 @@ from typing import Any
 from fastapi import Request
 from google.cloud import ndb
 from mealhow_sdk import enums
-from mealhow_sdk.datastore_models import Meal, ShoppingList, User
+from mealhow_sdk.datastore_models import Meal, ShoppingList, ShoppingListItem, User
 
 from core import custom_exceptions
 from core.config import get_settings
-from schemas.shopping_list import ShoppingListRequest
+from schemas.shopping_list import ShoppingListRequest, UpdateShoppingListRequest
 
 settings = get_settings()
 
 
-async def get_shopping_lists_from_db(user_id: str) -> list[ShoppingList]:
+async def get_users_shopping_lists_from_db(user_id: str) -> list[ShoppingList]:
     return (
         ShoppingList.query()
         .filter(
@@ -47,10 +47,28 @@ async def get_shopping_list_by_key_from_db(user_id: str, key: int) -> ShoppingLi
     return shopping_list
 
 
-async def delete_shopping_list_from_db(user_id: str, key: int) -> None:
-    shopping_list = await get_shopping_list_by_key_from_db(user_id, key)
-    shopping_list.deleted_at = datetime.datetime.utcnow()
-    shopping_list.put()
+async def get_shopping_lists_from_db(user_id: str, keys: list[int]) -> list[ShoppingList]:
+    filtered_shopping_lists = []
+    if len(keys) == 1:
+        filtered_shopping_lists = [await get_shopping_list_by_key_from_db(user_id, keys[0])]
+    elif not keys:
+        return []
+    else:
+        shopping_lists = ndb.get_multi([ndb.Key(ShoppingList, key) for key in keys])
+
+        for shopping_list in shopping_lists:
+            if shopping_list.user.id() == user_id and not shopping_list.deleted_at:
+                filtered_shopping_lists.append(shopping_list)
+
+    return filtered_shopping_lists
+
+
+async def delete_shopping_lists_from_db(user_id: str, keys: list[int]) -> None:
+    shopping_lists = await get_shopping_lists_from_db(user_id, keys)
+    for shopping_list in shopping_lists:
+        shopping_list.deleted_at = datetime.datetime.utcnow()
+
+    ndb.put_multi(shopping_lists)
 
 
 async def create_new_shopping_list_in_db(request: Request, data: ShoppingListRequest) -> ShoppingList:
@@ -88,3 +106,12 @@ async def get_linked_meals_to_shopping_list_from_db(user_id: str, key: int) -> l
         meal["image"] = meal["image"].get().to_dict()
 
     return meals
+
+
+async def update_shopping_list_by_key_in_db(user_id: str, key: int, data: UpdateShoppingListRequest) -> ShoppingList:
+    shopping_list = await get_shopping_list_by_key_from_db(user_id, key)
+    shopping_list.name = data.name.strip().lower()
+    shopping_list.items = [ShoppingListItem(**i.model_dump()) for i in data.items]
+    shopping_list.put()
+
+    return shopping_list

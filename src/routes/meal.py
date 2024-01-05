@@ -11,7 +11,7 @@ from services.meal import (
     get_favorite_meals_from_db,
     get_meal_from_db_by_key,
     save_meal_as_favorite_in_db,
-    unmark_meal_as_favorite,
+    unmark_meals_as_favorite,
 )
 
 router = APIRouter()
@@ -27,6 +27,15 @@ settings: Settings = get_settings()
 async def get_favorite_meals(request: Request) -> list[Meal]:
     favorite_meals = await get_favorite_meals_from_db(request.state.user_id)
     return [Meal(**meal) for meal in favorite_meals]
+
+
+@router.delete(
+    "/favorite",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(create_ndb_context)],
+)
+async def delete_favorite_meals_list(request: Request, keys: list[int]) -> None:
+    await unmark_meals_as_favorite(request.state.user_id, keys)
 
 
 @router.post(
@@ -45,8 +54,8 @@ async def add_meal_to_favorites(request: Request, key: str) -> None:
     responses={404: {"model": ExceptionResponse, "description": "Meal not found"}},
     dependencies=[Depends(create_ndb_context)],
 )
-async def delete_favorite_meal(request: Request, key: str) -> None:
-    await unmark_meal_as_favorite(request.state.user_id, key)
+async def delete_favorite_meal(request: Request, key: int) -> None:
+    await unmark_meals_as_favorite(request.state.user_id, [key])
 
 
 @router.get(

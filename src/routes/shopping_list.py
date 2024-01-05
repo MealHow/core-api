@@ -8,13 +8,15 @@ from schemas.shopping_list import (
     ShoppingListRequest,
     ShoppingListWithCount,
     ShoppingListWithItems,
+    UpdateShoppingListRequest,
 )
 from services.shopping_list import (
     create_new_shopping_list_in_db,
-    delete_shopping_list_from_db,
+    delete_shopping_lists_from_db,
     get_linked_meals_to_shopping_list_from_db,
     get_shopping_list_by_key_from_db,
-    get_shopping_lists_from_db,
+    get_users_shopping_lists_from_db,
+    update_shopping_list_by_key_in_db,
 )
 
 router = APIRouter()
@@ -28,7 +30,7 @@ settings: Settings = get_settings()
     dependencies=[Depends(create_ndb_context)],
 )
 async def get_shopping_lists(request: Request) -> list[ShoppingListWithCount]:
-    shopping_lists = await get_shopping_lists_from_db(request.state.user_id)
+    shopping_lists = await get_users_shopping_lists_from_db(request.state.user_id)
     shopping_lists_with_count = []
     for shopping_list in shopping_lists:
         shopping_lists_with_count.append(
@@ -49,6 +51,15 @@ async def create_shopping_list(request: Request, data: ShoppingListRequest) -> S
     return ShoppingListWithItems(**shopping_list.to_dict())
 
 
+@router.delete(
+    "/",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(create_ndb_context)],
+)
+async def delete_list_of_shopping_lists(request: Request, keys: list[int]) -> None:
+    await delete_shopping_lists_from_db(request.state.user_id, keys)
+
+
 @router.get(
     "/{key}",
     status_code=status.HTTP_200_OK,
@@ -58,6 +69,20 @@ async def create_shopping_list(request: Request, data: ShoppingListRequest) -> S
 )
 async def get_shopping_list_by_key(request: Request, key: int) -> ShoppingListWithItems:
     shopping_list = await get_shopping_list_by_key_from_db(request.state.user_id, key)
+    return ShoppingListWithItems(**shopping_list.to_dict())
+
+
+@router.put(
+    "/{key}",
+    status_code=status.HTTP_200_OK,
+    response_model=ShoppingListWithItems,
+    responses={404: {"model": ExceptionResponse, "description": "Shopping list not found"}},
+    dependencies=[Depends(create_ndb_context)],
+)
+async def update_shopping_list_by_key(
+    request: Request, key: int, data: UpdateShoppingListRequest
+) -> ShoppingListWithItems:
+    shopping_list = await update_shopping_list_by_key_in_db(request.state.user_id, key, data)
     return ShoppingListWithItems(**shopping_list.to_dict())
 
 
@@ -80,4 +105,4 @@ async def get_linked_meals_to_shopping_list(request: Request, key: int) -> list[
     dependencies=[Depends(create_ndb_context)],
 )
 async def delete_shopping_list(request: Request, key: int) -> None:
-    await delete_shopping_list_from_db(request.state.user_id, key)
+    await delete_shopping_lists_from_db(request.state.user_id, [key])
