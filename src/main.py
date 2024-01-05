@@ -191,26 +191,10 @@ app.include_router(
 
 
 if __name__ == "__main__":
-    # import uvicorn
-    #
-    # uvicorn.run(
-    #     app,
-    #     host=settings.HOST,
-    #     port=settings.PORT,
-    # )
-    loop = asyncio.new_event_loop()
-    task = loop.create_task(
-        get_bmr_and_total_calories_goal(
-            {
-                "current_weight_kg": 55,
-                "height_cm": 160,
-            },
-            PatchPersonalInfo(
-                age=20,
-                goal=enums.Goal.lose_weight.value,
-                activity_level=enums.ActivityLevel.moderate.value,
-                biological_sex=enums.BiologicalSex.female.value,
-            ),
-        )
+    import uvicorn
+
+    uvicorn.run(
+        app,
+        host=settings.HOST,
+        port=settings.PORT,
     )
-    loop.run_until_complete(task)
