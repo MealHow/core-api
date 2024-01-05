@@ -4,6 +4,7 @@ from typing import Any
 
 from fastapi import Request
 from google.cloud import ndb
+from mealhow_sdk import enums
 from mealhow_sdk.datastore_models import FavoriteMeal, Meal, MealImage, User
 
 from core import custom_exceptions
@@ -20,13 +21,16 @@ async def get_meal_from_db_by_key(key: str) -> Meal:
     return meal
 
 
-async def create_and_save_meal_recipe(request: Request, meal: Meal) -> None:
+async def create_and_save_meal_recipe(request: Request, meal: Meal) -> Meal:
     topic = "projects/{project_id}/topics/{topic}".format(
         project_id=settings.PROJECT_ID,
         topic=settings.PUBSUB_MEAL_RECIPE_EVENT_TOPIC_ID,
     )
     event_body = json.dumps({"meal_id": meal.key.id()}).encode("utf-8")
     request.state.pubsub_publisher.publish(topic, event_body)
+
+    meal.recipe_status = enums.JobStatus.in_progress.name
+    return meal.put().get()
 
 
 async def create_image_artifact_report(key: str) -> None:

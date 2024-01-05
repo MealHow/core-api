@@ -64,7 +64,7 @@ async def get_meal_by_key(request: Request, key: str) -> MealResponse:
         and meal_entity.recipe_status != enums.JobStatus.in_progress.name
         and meal_entity.preparation_time > 2
     ):
-        await create_and_save_meal_recipe(request, meal_entity)
+        meal_entity = await create_and_save_meal_recipe(request, meal_entity)
 
     meal = meal_entity.to_dict()
     meal["image"] = meal_entity.image.get().to_dict()
