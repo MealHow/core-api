@@ -13,6 +13,7 @@ from mealhow_sdk.datastore_models import MealPlan, User
 from core import custom_exceptions
 from core.config import get_settings
 from core.custom_exceptions import CreateMealPlanTimeoutException
+from core.helpers import get_pubsub_topic
 from schemas.user import PatchPersonalInfo, PersonalInfo
 from services.user import calculate_weight_and_height, get_bmr_and_total_calories_goal
 
@@ -69,10 +70,7 @@ async def get_archived_meal_plans_from_db(user_id: str) -> list[MealPlan]:
 
 
 async def request_new_meal_plan(request: Request) -> str:
-    topic = "projects/{project_id}/topics/{topic}".format(
-        project_id=settings.PROJECT_ID,
-        topic=settings.PUBSUB_MEAL_PLAN_EVENT_TOPIC_ID,
-    )
+    topic = await get_pubsub_topic(settings.PUBSUB_MEAL_PLAN_EVENT_TOPIC_ID)
 
     user_id = request.state.user_id
     user = User.get_by_id(user_id)

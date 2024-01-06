@@ -34,7 +34,7 @@ async def get_favorite_meals(request: Request) -> list[Meal]:
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(create_ndb_context)],
 )
-async def delete_favorite_meals_list(request: Request, keys: list[int]) -> None:
+async def delete_favorite_meals_list(request: Request, keys: list[str]) -> None:
     await unmark_meals_as_favorite(request.state.user_id, keys)
 
 
@@ -54,7 +54,7 @@ async def add_meal_to_favorites(request: Request, key: str) -> None:
     responses={404: {"model": ExceptionResponse, "description": "Meal not found"}},
     dependencies=[Depends(create_ndb_context)],
 )
-async def delete_favorite_meal(request: Request, key: int) -> None:
+async def delete_favorite_meal(request: Request, key: str) -> None:
     await unmark_meals_as_favorite(request.state.user_id, [key])
 
 

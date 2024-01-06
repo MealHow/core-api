@@ -9,6 +9,7 @@ from mealhow_sdk.datastore_models import Meal, ShoppingList, ShoppingListItem, U
 
 from core import custom_exceptions
 from core.config import get_settings
+from core.helpers import get_pubsub_topic
 from schemas.shopping_list import ShoppingListRequest, UpdateShoppingListRequest
 
 settings = get_settings()
@@ -17,9 +18,11 @@ settings = get_settings()
 async def get_users_shopping_lists_from_db(user_id: str) -> list[ShoppingList]:
     return (
         ShoppingList.query()
+        .order(ShoppingList.status)
         .filter(
             ndb.AND(
                 ShoppingList.user == ndb.Key(User, user_id),
+                ShoppingList.status != enums.JobStatus.failed.name,
                 ShoppingList.deleted_at == None,  # noqa: E711
             )
         )
@@ -82,10 +85,7 @@ async def create_new_shopping_list_in_db(request: Request, data: ShoppingListReq
     shopping_list_key = shopping_list.put()
     shopping_list_entity = shopping_list_key.get()
 
-    topic = "projects/{project_id}/topics/{topic}".format(
-        project_id=settings.PROJECT_ID,
-        topic=settings.PUBSUB_SHOPPING_LIST_EVENT_TOPIC_ID,
-    )
+    topic = await get_pubsub_topic(settings.PUBSUB_SHOPPING_LIST_EVENT_TOPIC_ID)
     event_body = json.dumps(
         {
             "shopping_list_id": shopping_list_entity.key.id(),

@@ -9,6 +9,7 @@ from mealhow_sdk.datastore_models import FavoriteMeal, Meal, MealImage, User
 
 from core import custom_exceptions
 from core.config import get_settings
+from core.helpers import get_pubsub_topic
 
 settings = get_settings()
 
@@ -22,10 +23,7 @@ async def get_meal_from_db_by_key(key: str) -> Meal:
 
 
 async def create_and_save_meal_recipe(request: Request, meal: Meal) -> Meal:
-    topic = "projects/{project_id}/topics/{topic}".format(
-        project_id=settings.PROJECT_ID,
-        topic=settings.PUBSUB_MEAL_RECIPE_EVENT_TOPIC_ID,
-    )
+    topic = await get_pubsub_topic(settings.PUBSUB_MEAL_RECIPE_EVENT_TOPIC_ID)
     event_body = json.dumps({"meal_id": meal.key.id()}).encode("utf-8")
     request.state.pubsub_publisher.publish(topic, event_body)
 
@@ -83,12 +81,26 @@ async def save_meal_as_favorite_in_db(user_id: str, meal_key: str) -> None:
     if favorite_meal:
         favorite_meal.deleted_at = None
     else:
+        favorite_meal = (
+            FavoriteMeal.query()
+            .filter(
+                ndb.AND(
+                    FavoriteMeal.user == ndb.Key(User, user_id),
+                    FavoriteMeal.meal == ndb.Key(Meal, meal_key),
+                )
+            )
+            .get()
+        )
+
+        if favorite_meal:
+            raise custom_exceptions.ConflictException("Meal already saved to favorites")
+
         favorite_meal = FavoriteMeal(user=ndb.Key(User, user_id), meal=meal.key)
 
     favorite_meal.put()
 
 
-async def unmark_meals_as_favorite(user_id: str, meal_keys: list[int]) -> None:
+async def unmark_meals_as_favorite(user_id: str, meal_keys: list[str]) -> None:
     favorite_meals = (
         FavoriteMeal.query()
         .filter(
